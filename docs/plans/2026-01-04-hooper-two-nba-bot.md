@@ -4,9 +4,36 @@
 
 **Goal:** Build a Discord bot that spawns NBA player images in chat channels for users to recognize and collect, with rarity tiers, leaderboards, and per-server configuration.
 
+---
+
+## ⚠️ Library Migration: basketball-reference-scraper → nba_api
+
+**Status:** Plan updated to use `nba_api` instead of `basketball-reference-scraper`
+
+**Rationale:**
+- `nba_api` is actively maintained (v1.11.3, Nov 2025) with Python 3.12+ support
+- `basketball-reference-scraper` uses outdated numpy versions and is prone to breakage
+- NBA.com official API access via `nba_api` is more reliable than web scraping
+- Player images via NBA CDN: `https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png`
+
+**Key Changes:**
+1. **Dependency:** `nba_api ^1.11.3` replaces `basketball-reference-scraper`
+2. **Module:** `src/scrapers/nba_api_client.py` replaces `basketball_ref_scraper.py`
+3. **Image Source:** NBA CDN URLs (constructed) instead of Basketball Reference scraping
+4. **Player Lookup:** `nba_api.stats.static.players` for name → ID mapping
+
+**Implementation Impact:**
+- Batch 3 (Image Management) fully rewritten for nba_api
+- All references to Basketball Reference removed from plan
+- Tests updated to reflect new client API
+
+---
+
 **Architecture:** Hybrid command Discord bot using discord.py with cog-based architecture. SQLite for persistence, in-memory Python dict for caching. Modular OOP design with Manager/Coordinator patterns. TDD throughout. Security-first with parameterized queries, input validation, and rate limiting.
 
-**Tech Stack:** Python 3.10+, discord.py, SQLite3, basketball-reference-scraper, Poetry, Docker/Docker Compose
+**Tech Stack:** Python 3.10+, discord.py, SQLite3, nba_api, Poetry, Docker/Docker Compose
+
+**Why nba_api:** Modern, well-maintained library (v1.11.3+) with official NBA.com API access. Compatible with Python 3.12+, unlike basketball-reference-scraper (old numpy dependency, scraping instability). Player images via NBA CDN URLs.
 
 **Security Focus:** All user input validated/sanitized, parameterized SQL queries only, rate limiting on all commands, environment variable token storage.
 
@@ -71,7 +98,7 @@ hoopertwo/
 │   │   └── leaderboard_cog.py     # Leaderboard commands
 │   └── scrapers/
 │       ├── __init__.py
-│       └── basketball_ref_scraper.py
+│       └── nba_api_client.py
 └── tests/
     ├── __init__.py
     ├── test_validators/
@@ -114,9 +141,10 @@ readme = "README.md"
 python = "^3.10"
 "discord.py" = "^2.3.2"
 python-dotenv = "^1.0.0"
-basketball-reference-scraper = "^1.0.0"
+nba_api = "^1.11.3"
 aiohttp = "^3.9.0"
 pillow = "^10.1.0"
+requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4.0"
@@ -153,9 +181,10 @@ DATABASE_PATH=data/hooper_two.db
 
 # Image Storage
 IMAGE_CACHE_DIR=data/images
+NBA_CDN_BASE_URL=https://cdn.nba.com/headshots/nba/latest/1040x760
 
-# Basketball Reference Rate Limiting
-BR_RATE_LIMIT_PER_MINUTE=20
+# NBA API Rate Limiting
+NBA_API_RATE_LIMIT_PER_MINUTE=20
 
 # Backup Configuration
 BACKUP_ENABLED=true
@@ -1615,63 +1644,80 @@ Expected: All tests pass, ADP board loaded correctly with proper rarity tiers
 ## Batch 3: Image Management System
 
 **Success Criteria:**
-- ✅ Basketball Reference scraper fetches player images with rate limiting
+- ✅ NBA API client fetches player data and constructs image URLs
+- ✅ Player images accessed via NBA CDN with constructed URLs
 - ✅ Images downloaded and cached locally
-- ✅ Rate limit of 20 requests/minute enforced
+- ✅ Rate limit of 20 requests/minute enforced for NBA API calls
 - ✅ Failed image downloads logged but don't crash system
 - ✅ All tests pass
 
-### Task 3.1: Basketball Reference Scraper
+### Task 3.1: NBA API Client
 
 **Files:**
 - Create: `src/scrapers/__init__.py`
-- Create: `src/scrapers/basketball_ref_scraper.py`
+- Create: `src/scrapers/nba_api_client.py`
 - Create: `tests/test_scrapers/__init__.py`
-- Create: `tests/test_scrapers/test_basketball_ref_scraper.py`
+- Create: `tests/test_scrapers/test_nba_api_client.py`
 
 **Step 1: Write failing test**
 
-Create `tests/test_scrapers/test_basketball_ref_scraper.py`:
+Create `tests/test_scrapers/test_nba_api_client.py`:
 
 ```python
 import pytest
 import time
-from src.scrapers.basketball_ref_scraper import BasketballReferenceScraper
+from src.scrapers.nba_api_client import NBAApiClient
 
 
-def test_scraper_initialization():
-    """Test scraper initializes with rate limit."""
-    scraper = BasketballReferenceScraper(rate_limit_per_minute=20)
-    assert scraper.rate_limit_per_minute == 20
+def test_client_initialization():
+    """Test client initializes with rate limit."""
+    client = NBAApiClient(rate_limit_per_minute=20)
+    assert client.rate_limit_per_minute == 20
 
 
-def test_normalize_player_name_for_url():
-    """Test player name normalization for Basketball Reference URLs."""
-    scraper = BasketballReferenceScraper()
+def test_construct_player_image_url():
+    """Test constructing CDN image URL from player ID."""
+    client = NBAApiClient()
 
-    # Basketball Reference uses format: lastname + first 2 letters of firstname + 01
-    # This is a simplified version - actual implementation may vary
-    assert "jordan" in scraper._normalize_name_for_url("Michael Jordan").lower()
-    assert "james" in scraper._normalize_name_for_url("LeBron James").lower()
+    # NBA CDN format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
+    url = client.construct_image_url(player_id=2544)  # LeBron James
+    assert url == "https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png"
+
+
+def test_find_player_by_name(monkeypatch):
+    """Test finding player ID by name using nba_api."""
+    client = NBAApiClient()
+
+    # Mock the nba_api call to avoid real API requests
+    def mock_get_players():
+        return [
+            {"id": 2544, "full_name": "LeBron James"},
+            {"id": 203076, "full_name": "Anthony Davis"},
+        ]
+
+    monkeypatch.setattr(client, "_get_all_players", mock_get_players)
+
+    player_id = client.find_player_id("LeBron James")
+    assert player_id == 2544
 
 
 def test_rate_limiting(monkeypatch):
     """Test that rate limiting is enforced."""
-    scraper = BasketballReferenceScraper(rate_limit_per_minute=2)  # 2 per minute for testing
+    client = NBAApiClient(rate_limit_per_minute=2)  # 2 per minute for testing
 
-    # Mock the actual fetch to avoid real HTTP requests
+    # Mock the actual API call to avoid real HTTP requests
     fetch_times = []
 
-    def mock_fetch(name):
+    def mock_api_call(name):
         fetch_times.append(time.time())
-        return f"http://example.com/{name}.jpg"
+        return 12345
 
-    monkeypatch.setattr(scraper, "_fetch_image_url", mock_fetch)
+    monkeypatch.setattr(client, "_api_find_player", mock_api_call)
 
     # Make 3 requests
-    scraper.get_player_image_url("Player 1")
-    scraper.get_player_image_url("Player 2")
-    scraper.get_player_image_url("Player 3")
+    client.find_player_id("Player 1")
+    client.find_player_id("Player 2")
+    client.find_player_id("Player 3")
 
     # Check that there's a delay between 2nd and 3rd request
     if len(fetch_times) >= 3:
@@ -1682,71 +1728,67 @@ def test_rate_limiting(monkeypatch):
 **Step 2: Run test to verify it fails**
 
 ```bash
-poetry run pytest tests/test_scrapers/test_basketball_ref_scraper.py -v
+poetry run pytest tests/test_scrapers/test_nba_api_client.py -v
 ```
 
 Expected: FAIL with "ModuleNotFoundError"
 
 **Step 3: Write implementation**
 
-Create `src/scrapers/basketball_ref_scraper.py`:
+Create `src/scrapers/nba_api_client.py`:
 
 ```python
-"""Basketball Reference scraper with rate limiting.
+"""NBA API client with rate limiting.
 
-Fetches player images from Basketball Reference while respecting
-their rate limits (20 requests/minute default).
+Fetches player data from NBA.com official API and constructs
+CDN image URLs. Uses nba_api library for API access.
 """
 import time
 import logging
-from typing import Optional
+from typing import Optional, Dict, List
 from collections import deque
+from nba_api.stats.static import players
 
 logger = logging.getLogger(__name__)
 
 
-class BasketballReferenceScraper:
-    """Scraper for Basketball Reference player images.
+class NBAApiClient:
+    """Client for NBA API with image URL construction.
 
     Responsibilities:
-    - Fetch player image URLs from Basketball Reference
+    - Find player IDs by name using nba_api
+    - Construct NBA CDN image URLs from player IDs
     - Enforce rate limiting (default: 20 requests/minute)
     - Handle errors gracefully
 
-    Note: This is a simplified implementation. The basketball-reference-scraper
-    library will be used in the actual image manager.
+    Image URL format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
     """
 
-    def __init__(self, rate_limit_per_minute: int = 20):
-        """Initialize scraper with rate limiting.
+    def __init__(
+        self,
+        rate_limit_per_minute: int = 20,
+        cdn_base_url: str = "https://cdn.nba.com/headshots/nba/latest/1040x760"
+    ):
+        """Initialize NBA API client with rate limiting.
 
         Args:
-            rate_limit_per_minute: Maximum requests per minute
+            rate_limit_per_minute: Maximum API requests per minute
+            cdn_base_url: Base URL for NBA CDN images
         """
         self.rate_limit_per_minute = rate_limit_per_minute
+        self.cdn_base_url = cdn_base_url
         self.request_times: deque = deque()
 
-    def _normalize_name_for_url(self, player_name: str) -> str:
-        """Normalize player name for Basketball Reference URL format.
-
-        Basketball Reference uses: last_name + first 2 chars of first_name + 01
-        Example: "Michael Jordan" -> "jordami01"
+    def construct_image_url(self, player_id: int) -> str:
+        """Construct NBA CDN image URL from player ID.
 
         Args:
-            player_name: Full player name
+            player_id: NBA player ID (e.g., 2544 for LeBron James)
 
         Returns:
-            Normalized name for URL
+            Full CDN URL to player headshot image
         """
-        parts = player_name.lower().split()
-        if len(parts) < 2:
-            return player_name.lower().replace(" ", "")
-
-        first_name = parts[0]
-        last_name = parts[-1]
-
-        # Basketball Reference format: lastname + first 2 of firstname + 01
-        return f"{last_name}{first_name[:2]}01"
+        return f"{self.cdn_base_url}/{player_id}.png"
 
     def _enforce_rate_limit(self) -> None:
         """Enforce rate limiting by waiting if necessary."""
@@ -1767,41 +1809,65 @@ class BasketballReferenceScraper:
         # Record this request time
         self.request_times.append(time.time())
 
-    def _fetch_image_url(self, player_name: str) -> Optional[str]:
-        """Fetch image URL for a player (to be implemented with actual library).
-
-        Args:
-            player_name: Full player name
+    def _get_all_players(self) -> List[Dict]:
+        """Get all NBA players from nba_api static data.
 
         Returns:
-            Image URL or None if not found
+            List of player dictionaries with id and full_name
         """
-        # Placeholder - actual implementation will use basketball-reference-scraper
-        normalized = self._normalize_name_for_url(player_name)
-        return f"https://www.basketball-reference.com/req/202106291/images/players/{normalized}.jpg"
+        return players.get_players()
 
-    def get_player_image_url(self, player_name: str) -> Optional[str]:
-        """Get player image URL with rate limiting.
+    def _api_find_player(self, player_name: str) -> Optional[int]:
+        """Internal method to find player ID (for testing/mocking).
 
         Args:
             player_name: Full player name
 
         Returns:
-            Image URL or None if not found
+            Player ID or None if not found
+        """
+        player_dict = players.find_players_by_full_name(player_name)
+        if player_dict:
+            return player_dict[0]['id']
+        return None
+
+    def find_player_id(self, player_name: str) -> Optional[int]:
+        """Find NBA player ID by name with rate limiting.
+
+        Args:
+            player_name: Full player name (e.g., "LeBron James")
+
+        Returns:
+            Player ID or None if not found
         """
         self._enforce_rate_limit()
 
         try:
-            return self._fetch_image_url(player_name)
+            return self._api_find_player(player_name)
         except Exception as e:
-            logger.error(f"Failed to fetch image for {player_name}: {e}")
+            logger.error(f"Failed to find player {player_name}: {e}")
             return None
+
+    def get_player_image_url(self, player_name: str) -> Optional[str]:
+        """Get player image URL by finding player ID and constructing CDN URL.
+
+        Args:
+            player_name: Full player name
+
+        Returns:
+            CDN image URL or None if player not found
+        """
+        player_id = self.find_player_id(player_name)
+        if player_id is None:
+            return None
+
+        return self.construct_image_url(player_id)
 ```
 
 **Step 4: Run tests (note: rate limiting test will be slow)**
 
 ```bash
-poetry run pytest tests/test_scrapers/test_basketball_ref_scraper.py -v -s
+poetry run pytest tests/test_scrapers/test_nba_api_client.py -v -s
 ```
 
 Expected: PASS (including rate limiting test which may take ~30s)
@@ -1810,7 +1876,7 @@ Expected: PASS (including rate limiting test which may take ~30s)
 
 ```bash
 git add src/scrapers/ tests/test_scrapers/
-git commit -m "feat: add Basketball Reference scraper with rate limiting"
+git commit -m "feat: add NBA API client with rate limiting and CDN image URL construction"
 ```
 
 ---
@@ -1829,7 +1895,7 @@ Create `tests/test_managers/test_image_manager.py`:
 import pytest
 from pathlib import Path
 from src.managers.image_manager import ImageManager
-from src.scrapers.basketball_ref_scraper import BasketballReferenceScraper
+from src.scrapers.nba_api_client import NBAApiClient
 
 
 @pytest.fixture
@@ -1843,8 +1909,8 @@ def temp_cache_dir(tmp_path):
 @pytest.fixture
 def image_manager(temp_cache_dir):
     """Create ImageManager with temp cache."""
-    scraper = BasketballReferenceScraper(rate_limit_per_minute=60)  # Fast for testing
-    return ImageManager(scraper, temp_cache_dir)
+    client = NBAApiClient(rate_limit_per_minute=60)  # Fast for testing
+    return ImageManager(client, temp_cache_dir)
 
 
 def test_get_cached_image_path(image_manager):
@@ -1852,7 +1918,7 @@ def test_get_cached_image_path(image_manager):
     path = image_manager.get_cached_image_path("Michael Jordan")
 
     assert "michael_jordan" in path.lower()
-    assert path.endswith(".jpg")
+    assert path.endswith(".png")  # NBA CDN uses PNG format
 
 
 def test_image_is_cached(image_manager, temp_cache_dir):
@@ -1912,7 +1978,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 import aiohttp
-from src.scrapers.basketball_ref_scraper import BasketballReferenceScraper
+from src.scrapers.nba_api_client import NBAApiClient
 
 logger = logging.getLogger(__name__)
 
@@ -1921,19 +1987,19 @@ class ImageManager:
     """Manager for player image downloading and caching.
 
     Responsibilities:
-    - Download player images from Basketball Reference
+    - Download player images from NBA CDN
     - Cache images locally to avoid re-downloads
     - Handle download failures gracefully
     """
 
-    def __init__(self, scraper: BasketballReferenceScraper, cache_dir: str):
+    def __init__(self, nba_client: NBAApiClient, cache_dir: str):
         """Initialize image manager.
 
         Args:
-            scraper: Basketball Reference scraper instance
+            nba_client: NBA API client instance
             cache_dir: Directory to cache downloaded images
         """
-        self.scraper = scraper
+        self.nba_client = nba_client
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1948,7 +2014,7 @@ class ImageManager:
         """
         # Normalize player name for filename (lowercase, underscores)
         filename = player_name.lower().replace(" ", "_").replace(".", "")
-        filename = filename.replace("-", "_") + ".jpg"
+        filename = filename.replace("-", "_") + ".png"  # NBA CDN uses PNG
         return str(self.cache_dir / filename)
 
     def is_cached(self, player_name: str) -> bool:
