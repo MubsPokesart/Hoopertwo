@@ -29,6 +29,15 @@ class HooperTwoBot(commands.Bot):
         intents.guilds = True
         intents.members = True
 
+        # DIAGNOSTIC: Log exact intents being used
+        logger.info("=== DIAGNOSTIC: Intents Configuration ===")
+        logger.info(f"Intents value: {intents.value}")
+        logger.info(f"guilds: {intents.guilds}")
+        logger.info(f"members: {intents.members}")
+        logger.info(f"message_content: {intents.message_content}")
+        logger.info(f"presences: {intents.presences}")
+        logger.info("========================================")
+
         super().__init__(
             command_prefix=self.settings.command_prefix,
             intents=intents,
@@ -47,7 +56,21 @@ class HooperTwoBot(commands.Bot):
     async def on_ready(self):
         """Called when bot successfully connects to Discord."""
         logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+
+        # DIAGNOSTIC: Detailed guild information
+        logger.info("=== DIAGNOSTIC: Guild Connection Status ===")
         logger.info(f"Connected to {len(self.guilds)} guilds")
+        logger.info(f"Guild objects: {self.guilds}")
+        logger.info(f"Is bot ready: {self.is_ready()}")
+        logger.info(f"Latency: {self.latency * 1000:.2f}ms")
+
+        # List each guild if any
+        if self.guilds:
+            for guild in self.guilds:
+                logger.info(f"  - {guild.name} (ID: {guild.id})")
+        else:
+            logger.warning("No guilds found in cache!")
+        logger.info("==========================================")
 
         # Sync slash commands
         try:
@@ -55,6 +78,32 @@ class HooperTwoBot(commands.Bot):
             logger.info(f"Synced {len(synced)} command(s)")
         except Exception as e:
             logger.error(f"Failed to sync commands: {e}")
+
+    async def on_guild_join(self, guild):
+        """DIAGNOSTIC: Track when bot joins a guild."""
+        logger.info(f"=== DIAGNOSTIC: GUILD_JOIN event fired ===")
+        logger.info(f"Joined guild: {guild.name} (ID: {guild.id})")
+        logger.info(f"Total guilds now: {len(self.guilds)}")
+        logger.info("=========================================")
+
+    async def on_guild_remove(self, guild):
+        """DIAGNOSTIC: Track when bot is removed from a guild."""
+        logger.info(f"=== DIAGNOSTIC: GUILD_REMOVE event fired ===")
+        logger.info(f"Removed from guild: {guild.name} (ID: {guild.id})")
+        logger.info(f"Total guilds now: {len(self.guilds)}")
+        logger.info("============================================")
+
+    async def on_guild_available(self, guild):
+        """DIAGNOSTIC: Track when guild becomes available."""
+        logger.info(f"=== DIAGNOSTIC: GUILD_AVAILABLE event ===")
+        logger.info(f"Guild available: {guild.name} (ID: {guild.id})")
+        logger.info("=========================================")
+
+    async def on_guild_unavailable(self, guild):
+        """DIAGNOSTIC: Track when guild becomes unavailable."""
+        logger.warning(f"=== DIAGNOSTIC: GUILD_UNAVAILABLE event ===")
+        logger.warning(f"Guild unavailable: {guild.name} (ID: {guild.id})")
+        logger.warning("===========================================")
 
     async def on_command_error(self, ctx, error):
         """Global error handler for commands."""

@@ -3,6 +3,9 @@ name = "hooper-two"
 version = "0.1.0"
 description = "NBA player collection Discord bot"
 authors = ["Your Name <you@example.com>"]
+packages = [
+    { include = "src" }
+]
 license = "MIT"
 readme = "README.md"
 

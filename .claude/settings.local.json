@@ -5,7 +5,18 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "WebSearch",
-      "Skill(superpowers:writing-plans)"
+      "Skill(superpowers:writing-plans)",
+      "Skill(superpowers:executing-plans)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(pip install:*)",
+      "Bash(python -m poetry install:*)",
+      "Skill(superpowers:systematic-debugging)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)"
     ]
   }
 }
