@@ -16,11 +16,10 @@ def test_settings_loads_from_environment(monkeypatch):
     assert settings.default_spawn_threshold == 100
 
 
-def test_settings_validates_required_fields():
+def test_settings_validates_required_fields(monkeypatch):
     """Test that Settings raises error if required fields missing."""
-    # Clear DISCORD_TOKEN if it exists
-    if "DISCORD_TOKEN" in os.environ:
-        del os.environ["DISCORD_TOKEN"]
+    # Set DISCORD_TOKEN to empty string to prevent load_dotenv from loading it
+    monkeypatch.setenv("DISCORD_TOKEN", "")
 
     with pytest.raises(ValueError, match="DISCORD_TOKEN"):
         Settings()
