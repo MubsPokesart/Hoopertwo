@@ -21,7 +21,7 @@ from nba_api.stats.static import players
 from nba_api.stats.endpoints import playercareerstats
 from src.database.connection_manager import ConnectionManager
 from src.database.repositories.player_repository import PlayerRepository
-from src.config.settings import settings
+from src.config.settings import get_settings
 
 # Configure logging
 logging.basicConfig(
@@ -112,6 +112,9 @@ def get_player_career_minutes(player_id: int) -> Optional[int]:
 def seed_all_players():
     """Main function to seed database with all NBA players >1000 minutes."""
     logger.info("Starting player seeding process...")
+
+    # Get settings
+    settings = get_settings()
 
     # Initialize database
     db = ConnectionManager(settings.database_path)
