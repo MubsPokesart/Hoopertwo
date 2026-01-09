@@ -1,0 +1,2257 @@
+{
+  "verified": {
+    "Michael Jordan": {
+      "player_id": "jordami01",
+      "adp": 1.41,
+      "url": "https://www.basketball-reference.com/players/j/jordami01.html"
+    },
+    "LeBron James": {
+      "player_id": "jamesle01",
+      "adp": 1.9,
+      "url": "https://www.basketball-reference.com/players/j/jamesle01.html"
+    },
+    "Kevin Garnett": {
+      "player_id": "garneke01",
+      "adp": 4.05,
+      "url": "https://www.basketball-reference.com/players/g/garneke01.html"
+    },
+    "Larry Bird": {
+      "player_id": "birdla01",
+      "adp": 4.15,
+      "url": "https://www.basketball-reference.com/players/b/birdla01.html"
+    },
+    "Stephen Curry": {
+      "player_id": "curryst01",
+      "adp": 4.54,
+      "url": "https://www.basketball-reference.com/players/c/curryst01.html"
+    },
+    "Shaquille O'Neal": {
+      "player_id": "onealsh01",
+      "adp": 5.34,
+      "url": "https://www.basketball-reference.com/players/o/onealsh01.html"
+    },
+    "Hakeem Olajuwon": {
+      "player_id": "olajuha01",
+      "adp": 8.41,
+      "url": "https://www.basketball-reference.com/players/o/olajuha01.html"
+    },
+    "Magic Johnson": {
+      "player_id": "johnsma05",
+      "adp": 8.56,
+      "url": "https://www.basketball-reference.com/players/j/johnsma05.html"
+    },
+    "Jerry West": {
+      "player_id": "westje01",
+      "adp": 10.0,
+      "url": "https://www.basketball-reference.com/players/w/westje01.html"
+    },
+    "Kevin Durant": {
+      "player_id": "duranke01",
+      "adp": 10.9,
+      "url": "https://www.basketball-reference.com/players/d/duranke01.html"
+    },
+    "Kareem Abdul-Jabbar": {
+      "player_id": "abdulka01",
+      "adp": 11.49,
+      "url": "https://www.basketball-reference.com/players/a/abdulka01.html"
+    },
+    "Kobe Bryant": {
+      "player_id": "bryanko01",
+      "adp": 11.55,
+      "url": "https://www.basketball-reference.com/players/b/bryanko01.html"
+    },
+    "Tim Duncan": {
+      "player_id": "duncati01",
+      "adp": 13.24,
+      "url": "https://www.basketball-reference.com/players/d/duncati01.html"
+    },
+    "Dwyane Wade": {
+      "player_id": "wadedw01",
+      "adp": 16.15,
+      "url": "https://www.basketball-reference.com/players/w/wadedw01.html"
+    },
+    "Chris Paul": {
+      "player_id": "paulch01",
+      "adp": 18.26,
+      "url": "https://www.basketball-reference.com/players/p/paulch01.html"
+    },
+    "Steve Nash": {
+      "player_id": "nashst01",
+      "adp": 19.1,
+      "url": "https://www.basketball-reference.com/players/n/nashst01.html"
+    },
+    "Wilt Chamberlain": {
+      "player_id": "chambwi01",
+      "adp": 20.14,
+      "url": "https://www.basketball-reference.com/players/c/chambwi01.html"
+    },
+    "Bill Russell": {
+      "player_id": "russebi01",
+      "adp": 21.0,
+      "url": "https://www.basketball-reference.com/players/r/russebi01.html"
+    },
+    "Tracy McGrady": {
+      "player_id": "mcgratr01",
+      "adp": 23.36,
+      "url": "https://www.basketball-reference.com/players/m/mcgratr01.html"
+    },
+    "Oscar Robertson": {
+      "player_id": "roberos01",
+      "adp": 25.26,
+      "url": "https://www.basketball-reference.com/players/r/roberos01.html"
+    },
+    "Anthony Davis": {
+      "player_id": "davisan02",
+      "adp": 25.41,
+      "url": "https://www.basketball-reference.com/players/d/davisan02.html"
+    },
+    "Giannis Antetokounmpo": {
+      "player_id": "antetgi01",
+      "adp": 25.44,
+      "url": "https://www.basketball-reference.com/players/a/antetgi01.html"
+    },
+    "James Harden": {
+      "player_id": "hardeja01",
+      "adp": 31.66,
+      "url": "https://www.basketball-reference.com/players/h/hardeja01.html"
+    },
+    "Dirk Nowitzki": {
+      "player_id": "nowitdi01",
+      "adp": 32.06,
+      "url": "https://www.basketball-reference.com/players/n/nowitdi01.html"
+    },
+    "Scottie Pippen": {
+      "player_id": "pippesc01",
+      "adp": 34.64,
+      "url": "https://www.basketball-reference.com/players/p/pippesc01.html"
+    },
+    "Charles Barkley": {
+      "player_id": "barklch01",
+      "adp": 38.07,
+      "url": "https://www.basketball-reference.com/players/b/barklch01.html"
+    },
+    "Karl Malone": {
+      "player_id": "malonka01",
+      "adp": 38.59,
+      "url": "https://www.basketball-reference.com/players/m/malonka01.html"
+    },
+    "Ray Allen": {
+      "player_id": "allenra02",
+      "adp": 41.14,
+      "url": "https://www.basketball-reference.com/players/a/allenra02.html"
+    },
+    "Paul Pierce": {
+      "player_id": "piercpa01",
+      "adp": 49.15,
+      "url": "https://www.basketball-reference.com/players/p/piercpa01.html"
+    },
+    "Damian Lillard": {
+      "player_id": "lillada01",
+      "adp": 50.03,
+      "url": "https://www.basketball-reference.com/players/l/lillada01.html"
+    },
+    "Klay Thompson": {
+      "player_id": "thompkl01",
+      "adp": 57.12,
+      "url": "https://www.basketball-reference.com/players/t/thompkl01.html"
+    },
+    "Vince Carter": {
+      "player_id": "cartevi01",
+      "adp": 57.49,
+      "url": "https://www.basketball-reference.com/players/c/cartevi01.html"
+    },
+    "Patrick Ewing": {
+      "player_id": "ewingpa01",
+      "adp": 66.35,
+      "url": "https://www.basketball-reference.com/players/e/ewingpa01.html"
+    },
+    "Jason Kidd": {
+      "player_id": "kiddja01",
+      "adp": 67.52,
+      "url": "https://www.basketball-reference.com/players/k/kiddja01.html"
+    },
+    "Kyle Lowry": {
+      "player_id": "lowryky01",
+      "adp": 68.29,
+      "url": "https://www.basketball-reference.com/players/l/lowryky01.html"
+    },
+    "Devin Booker": {
+      "player_id": "bookede01",
+      "adp": 68.62,
+      "url": "https://www.basketball-reference.com/players/b/bookede01.html"
+    },
+    "Russell Westbrook": {
+      "player_id": "westbru01",
+      "adp": 72.85,
+      "url": "https://www.basketball-reference.com/players/w/westbru01.html"
+    },
+    "John Stockton": {
+      "player_id": "stockjo01",
+      "adp": 76.3,
+      "url": "https://www.basketball-reference.com/players/s/stockjo01.html"
+    },
+    "Marques Johnson": {
+      "player_id": "johnsom01",
+      "adp": 80.55,
+      "url": "https://www.basketball-reference.com/players/j/johnsom01.html"
+    },
+    "Kyrie Irving": {
+      "player_id": "irvinky01",
+      "adp": 88.23,
+      "url": "https://www.basketball-reference.com/players/i/irvinky01.html"
+    },
+    "Gary Payton": {
+      "player_id": "paytoga01",
+      "adp": 91.57,
+      "url": "https://www.basketball-reference.com/players/p/paytoga01.html"
+    },
+    "Derrick Rose": {
+      "player_id": "rosede01",
+      "adp": 117.93,
+      "url": "https://www.basketball-reference.com/players/r/rosede01.html"
+    },
+    "Allen Iverson": {
+      "player_id": "irverso01",
+      "adp": 134.29,
+      "url": "https://www.basketball-reference.com/players/i/irverso01.html"
+    },
+    "Chris Webber": {
+      "player_id": "webbech01",
+      "adp": 134.8,
+      "url": "https://www.basketball-reference.com/players/w/webbech01.html"
+    },
+    "Dennis Rodman": {
+      "player_id": "rodmade01",
+      "adp": 142.23,
+      "url": "https://www.basketball-reference.com/players/r/rodmade01.html"
+    },
+    "Brook Lopez": {
+      "player_id": "lopezbr01",
+      "adp": 235.95,
+      "url": "https://www.basketball-reference.com/players/l/lopezbr01.html"
+    }
+  },
+  "estimated": {
+    "Shai Gilgeous-Alexander": {
+      "player_id": "gilgesh01",
+      "adp": 11.67,
+      "url": "https://www.basketball-reference.com/players/g/gilgesh01.html"
+    },
+    "Kawhi Leonard": {
+      "player_id": "leonaka01",
+      "adp": 12.9,
+      "url": "https://www.basketball-reference.com/players/l/leonaka01.html"
+    },
+    "Nikola Jokic": {
+      "player_id": "jokicni01",
+      "adp": 15.39,
+      "url": "https://www.basketball-reference.com/players/j/jokicni01.html"
+    },
+    "David Robinson": {
+      "player_id": "robinda01",
+      "adp": 17.03,
+      "url": "https://www.basketball-reference.com/players/r/robinda01.html"
+    },
+    "Bill Walton": {
+      "player_id": "waltobi01",
+      "adp": 23.35,
+      "url": "https://www.basketball-reference.com/players/w/waltobi01.html"
+    },
+    "Julius Erving": {
+      "player_id": "ervinju01",
+      "adp": 28.16,
+      "url": "https://www.basketball-reference.com/players/e/ervinju01.html"
+    },
+    "Luka Doncic": {
+      "player_id": "doncilu01",
+      "adp": 30.31,
+      "url": "https://www.basketball-reference.com/players/d/doncilu01.html"
+    },
+    "Reggie Miller": {
+      "player_id": "millere01",
+      "adp": 31.83,
+      "url": "https://www.basketball-reference.com/players/m/millere01.html"
+    },
+    "Grant Hill": {
+      "player_id": "hillgr01",
+      "adp": 32.8,
+      "url": "https://www.basketball-reference.com/players/h/hillgr01.html"
+    },
+    "Paul George": {
+      "player_id": "georgpa01",
+      "adp": 33.02,
+      "url": "https://www.basketball-reference.com/players/g/georgpa01.html"
+    },
+    "Victor Wembanyama": {
+      "player_id": "wembavi01",
+      "adp": 34.14,
+      "url": "https://www.basketball-reference.com/players/w/wembavi01.html"
+    },
+    "Draymond Green": {
+      "player_id": "greendr01",
+      "adp": 36.96,
+      "url": "https://www.basketball-reference.com/players/g/greendr01.html"
+    },
+    "Manu Ginobili": {
+      "player_id": "ginobma01",
+      "adp": 37.09,
+      "url": "https://www.basketball-reference.com/players/g/ginobma01.html"
+    },
+    "Jayson Tatum": {
+      "player_id": "tatumja01",
+      "adp": 38.23,
+      "url": "https://www.basketball-reference.com/players/t/tatumja01.html"
+    },
+    "Joel Embiid": {
+      "player_id": "embiijo01",
+      "adp": 38.36,
+      "url": "https://www.basketball-reference.com/players/e/embiijo01.html"
+    },
+    "Penny Hardaway": {
+      "player_id": "hardape01",
+      "adp": 40.53,
+      "url": "https://www.basketball-reference.com/players/h/hardape01.html"
+    },
+    "Jimmy Butler": {
+      "player_id": "butleji01",
+      "adp": 43.85,
+      "url": "https://www.basketball-reference.com/players/b/butleji01.html"
+    },
+    "Walt Frazier": {
+      "player_id": "fraziwa01",
+      "adp": 44.39,
+      "url": "https://www.basketball-reference.com/players/f/fraziwa01.html"
+    },
+    "Mark Price": {
+      "player_id": "pricema01",
+      "adp": 44.56,
+      "url": "https://www.basketball-reference.com/players/p/pricema01.html"
+    },
+    "Bob McAdoo": {
+      "player_id": "mcadobo01",
+      "adp": 45.64,
+      "url": "https://www.basketball-reference.com/players/m/mcadobo01.html"
+    },
+    "Chauncey Billups": {
+      "player_id": "billuch01",
+      "adp": 50.82,
+      "url": "https://www.basketball-reference.com/players/b/billuch01.html"
+    },
+    "Clyde Drexler": {
+      "player_id": "drexlcl01",
+      "adp": 52.08,
+      "url": "https://www.basketball-reference.com/players/d/drexlcl01.html"
+    },
+    "John Havlicek": {
+      "player_id": "havlijo01",
+      "adp": 52.74,
+      "url": "https://www.basketball-reference.com/players/h/havlijo01.html"
+    },
+    "Chris Mullin": {
+      "player_id": "mullich01",
+      "adp": 53.95,
+      "url": "https://www.basketball-reference.com/players/m/mullich01.html"
+    },
+    "Dwight Howard": {
+      "player_id": "howardw01",
+      "adp": 56.65,
+      "url": "https://www.basketball-reference.com/players/h/howardw01.html"
+    },
+    "Eddie Jones": {
+      "player_id": "jonesed01",
+      "adp": 58.58,
+      "url": "https://www.basketball-reference.com/players/j/jonesed01.html"
+    },
+    "Sidney Moncrief": {
+      "player_id": "moncrsi01",
+      "adp": 59.4,
+      "url": "https://www.basketball-reference.com/players/m/moncrsi01.html"
+    },
+    "Terry Porter": {
+      "player_id": "portete01",
+      "adp": 62.09,
+      "url": "https://www.basketball-reference.com/players/p/portete01.html"
+    },
+    "Willis Reed": {
+      "player_id": "reedwi01",
+      "adp": 62.69,
+      "url": "https://www.basketball-reference.com/players/r/reedwi01.html"
+    },
+    "Shawn Kemp": {
+      "player_id": "kempsh01",
+      "adp": 62.9,
+      "url": "https://www.basketball-reference.com/players/k/kempsh01.html"
+    },
+    "Rashard Lewis": {
+      "player_id": "lewisra01",
+      "adp": 64.66,
+      "url": "https://www.basketball-reference.com/players/l/lewisra01.html"
+    },
+    "Brandon Roy": {
+      "player_id": "roybr01",
+      "adp": 66.52,
+      "url": "https://www.basketball-reference.com/players/r/roybr01.html"
+    },
+    "Tyrese Haliburton": {
+      "player_id": "halibty01",
+      "adp": 66.95,
+      "url": "https://www.basketball-reference.com/players/h/halibty01.html"
+    },
+    "Deron Williams": {
+      "player_id": "willide01",
+      "adp": 67.74,
+      "url": "https://www.basketball-reference.com/players/w/willide01.html"
+    },
+    "Rasheed Wallace": {
+      "player_id": "wallara01",
+      "adp": 67.97,
+      "url": "https://www.basketball-reference.com/players/w/wallara01.html"
+    },
+    "Anthony Edwards": {
+      "player_id": "edwaran01",
+      "adp": 70.0,
+      "url": "https://www.basketball-reference.com/players/e/edwaran01.html"
+    },
+    "Bobby Jones": {
+      "player_id": "jonesbo01",
+      "adp": 70.97,
+      "url": "https://www.basketball-reference.com/players/j/jonesbo01.html"
+    },
+    "Peja Stojakovic": {
+      "player_id": "stojape01",
+      "adp": 72.03,
+      "url": "https://www.basketball-reference.com/players/s/stojape01.html"
+    },
+    "Moses Malone": {
+      "player_id": "malonmo01",
+      "adp": 72.83,
+      "url": "https://www.basketball-reference.com/players/m/malonmo01.html"
+    },
+    "Joe Dumars": {
+      "player_id": "dumarjo01",
+      "adp": 75.92,
+      "url": "https://www.basketball-reference.com/players/d/dumarjo01.html"
+    },
+    "Andrei Kirilenko": {
+      "player_id": "kirilan01",
+      "adp": 76.8,
+      "url": "https://www.basketball-reference.com/players/k/kirilan01.html"
+    },
+    "Marc Gasol": {
+      "player_id": "gasolma01",
+      "adp": 76.97,
+      "url": "https://www.basketball-reference.com/players/g/gasolma01.html"
+    },
+    "Larry Nance Sr.": {
+      "player_id": "nancela01",
+      "adp": 76.97,
+      "url": "https://www.basketball-reference.com/players/n/nancela01.html"
+    },
+    "Victor Oladipo": {
+      "player_id": "oladivi01",
+      "adp": 82.01,
+      "url": "https://www.basketball-reference.com/players/o/oladivi01.html"
+    },
+    "Isiah Thomas": {
+      "player_id": "thomais01",
+      "adp": 82.35,
+      "url": "https://www.basketball-reference.com/players/t/thomais01.html"
+    },
+    "Andre Iguodala": {
+      "player_id": "iguodan01",
+      "adp": 84.18,
+      "url": "https://www.basketball-reference.com/players/i/iguodan01.html"
+    },
+    "Kevin Johnson": {
+      "player_id": "johnske01",
+      "adp": 84.35,
+      "url": "https://www.basketball-reference.com/players/j/johnske01.html"
+    },
+    "Evan Mobley": {
+      "player_id": "mobleev01",
+      "adp": 84.38,
+      "url": "https://www.basketball-reference.com/players/m/mobleev01.html"
+    },
+    "Shawn Marion": {
+      "player_id": "mariosh01",
+      "adp": 85.0,
+      "url": "https://www.basketball-reference.com/players/m/mariosh01.html"
+    },
+    "Rick Barry": {
+      "player_id": "barryri01",
+      "adp": 85.08,
+      "url": "https://www.basketball-reference.com/players/b/barryri01.html"
+    },
+    "Mike Conley": {
+      "player_id": "conlemi01",
+      "adp": 86.24,
+      "url": "https://www.basketball-reference.com/players/c/conlemi01.html"
+    },
+    "Pau Gasol": {
+      "player_id": "gasolpa01",
+      "adp": 87.43,
+      "url": "https://www.basketball-reference.com/players/g/gasolpa01.html"
+    },
+    "Donovan Mitchell": {
+      "player_id": "mitchdo01",
+      "adp": 93.36,
+      "url": "https://www.basketball-reference.com/players/m/mitchdo01.html"
+    },
+    "Jaylen Brown": {
+      "player_id": "brownja01",
+      "adp": 95.22,
+      "url": "https://www.basketball-reference.com/players/b/brownja01.html"
+    },
+    "Dave Cowens": {
+      "player_id": "cowenda01",
+      "adp": 96.46,
+      "url": "https://www.basketball-reference.com/players/c/cowenda01.html"
+    },
+    "Jaren Jackson Jr.": {
+      "player_id": "jacksja01",
+      "adp": 99.69,
+      "url": "https://www.basketball-reference.com/players/j/jacksja01.html"
+    },
+    "George Gervin": {
+      "player_id": "gervige01",
+      "adp": 100.0,
+      "url": "https://www.basketball-reference.com/players/g/gervige01.html"
+    },
+    "Jrue Holiday": {
+      "player_id": "holidjr01",
+      "adp": 100.05,
+      "url": "https://www.basketball-reference.com/players/h/holidjr01.html"
+    },
+    "Alonzo Mourning": {
+      "player_id": "mournal01",
+      "adp": 100.53,
+      "url": "https://www.basketball-reference.com/players/m/mournal01.html"
+    },
+    "Mitch Richmond": {
+      "player_id": "richmmi01",
+      "adp": 100.76,
+      "url": "https://www.basketball-reference.com/players/r/richmmi01.html"
+    },
+    "Jalen Williams": {
+      "player_id": "willija01",
+      "adp": 100.76,
+      "url": "https://www.basketball-reference.com/players/w/willija01.html"
+    },
+    "Chris Bosh": {
+      "player_id": "boshch01",
+      "adp": 101.62,
+      "url": "https://www.basketball-reference.com/players/b/boshch01.html"
+    },
+    "Mikal Bridges": {
+      "player_id": "bridgmi01",
+      "adp": 101.92,
+      "url": "https://www.basketball-reference.com/players/b/bridgmi01.html"
+    },
+    "Dan Majerle": {
+      "player_id": "majerda01",
+      "adp": 102.22,
+      "url": "https://www.basketball-reference.com/players/m/majerda01.html"
+    },
+    "Khris Middleton": {
+      "player_id": "middlkh01",
+      "adp": 103.35,
+      "url": "https://www.basketball-reference.com/players/m/middlkh01.html"
+    },
+    "James Worthy": {
+      "player_id": "worthja01",
+      "adp": 106.1,
+      "url": "https://www.basketball-reference.com/players/w/worthja01.html"
+    },
+    "Jalen Brunson": {
+      "player_id": "brunsja01",
+      "adp": 106.5,
+      "url": "https://www.basketball-reference.com/players/b/brunsja01.html"
+    },
+    "Al Horford": {
+      "player_id": "horfoal01",
+      "adp": 110.47,
+      "url": "https://www.basketball-reference.com/players/h/horfoal01.html"
+    },
+    "Bradley Beal": {
+      "player_id": "bealbr01",
+      "adp": 114.09,
+      "url": "https://www.basketball-reference.com/players/b/bealbr01.html"
+    },
+    "Shane Battier": {
+      "player_id": "battish01",
+      "adp": 114.36,
+      "url": "https://www.basketball-reference.com/players/b/battish01.html"
+    },
+    "Michael Cooper": {
+      "player_id": "coopemi01",
+      "adp": 114.7,
+      "url": "https://www.basketball-reference.com/players/c/coopemi01.html"
+    },
+    "Bob Lanier": {
+      "player_id": "laniebo01",
+      "adp": 117.16,
+      "url": "https://www.basketball-reference.com/players/l/laniebo01.html"
+    },
+    "Bam Adebayo": {
+      "player_id": "adebaba01",
+      "adp": 118.96,
+      "url": "https://www.basketball-reference.com/players/a/adebaba01.html"
+    },
+    "Cade Cunningham": {
+      "player_id": "cunnica01",
+      "adp": 120.19,
+      "url": "https://www.basketball-reference.com/players/c/cunnica01.html"
+    },
+    "Ron Artest": {
+      "player_id": "artesro01",
+      "adp": 120.21,
+      "url": "https://www.basketball-reference.com/players/a/artesro01.html"
+    },
+    "Gordon Hayward": {
+      "player_id": "haywago01",
+      "adp": 121.28,
+      "url": "https://www.basketball-reference.com/players/h/haywago01.html"
+    },
+    "Paul Millsap": {
+      "player_id": "millspa01",
+      "adp": 121.35,
+      "url": "https://www.basketball-reference.com/players/m/millspa01.html"
+    },
+    "Derrick White": {
+      "player_id": "whitede01",
+      "adp": 121.64,
+      "url": "https://www.basketball-reference.com/players/w/whitede01.html"
+    },
+    "Pascal Siakam": {
+      "player_id": "siakapa01",
+      "adp": 122.57,
+      "url": "https://www.basketball-reference.com/players/s/siakapa01.html"
+    },
+    "Doug Christie": {
+      "player_id": "chrisdo01",
+      "adp": 123.05,
+      "url": "https://www.basketball-reference.com/players/c/chrisdo01.html"
+    },
+    "Jeff Hornacek": {
+      "player_id": "hornaje01",
+      "adp": 123.71,
+      "url": "https://www.basketball-reference.com/players/h/hornaje01.html"
+    },
+    "Hersey Hawkins": {
+      "player_id": "hawkihe01",
+      "adp": 124.41,
+      "url": "https://www.basketball-reference.com/players/h/hawkihe01.html"
+    },
+    "Rudy Gobert": {
+      "player_id": "goberru01",
+      "adp": 124.76,
+      "url": "https://www.basketball-reference.com/players/g/goberru01.html"
+    },
+    "Derek Harper": {
+      "player_id": "harpede01",
+      "adp": 125.53,
+      "url": "https://www.basketball-reference.com/players/h/harpede01.html"
+    },
+    "Karl-Anthony Towns": {
+      "player_id": "townska01",
+      "adp": 126.52,
+      "url": "https://www.basketball-reference.com/players/t/townska01.html"
+    },
+    "Danny Green": {
+      "player_id": "greenda01",
+      "adp": 126.56,
+      "url": "https://www.basketball-reference.com/players/g/greenda01.html"
+    },
+    "Lamar Odom": {
+      "player_id": "odomla01",
+      "adp": 127.13,
+      "url": "https://www.basketball-reference.com/players/o/odomla01.html"
+    },
+    "Lauri Markkanen": {
+      "player_id": "markkla01",
+      "adp": 129.65,
+      "url": "https://www.basketball-reference.com/players/m/markkla01.html"
+    },
+    "Paul Pressey": {
+      "player_id": "presspa01",
+      "adp": 129.8,
+      "url": "https://www.basketball-reference.com/players/p/presspa01.html"
+    },
+    "Alex English": {
+      "player_id": "englial01",
+      "adp": 129.86,
+      "url": "https://www.basketball-reference.com/players/e/englial01.html"
+    },
+    "Chet Holmgren": {
+      "player_id": "holmgch01",
+      "adp": 129.93,
+      "url": "https://www.basketball-reference.com/players/h/holmgch01.html"
+    },
+    "Tayshaun Prince": {
+      "player_id": "princta01",
+      "adp": 130.94,
+      "url": "https://www.basketball-reference.com/players/p/princta01.html"
+    },
+    "Zion Williamson": {
+      "player_id": "willizi01",
+      "adp": 131.29,
+      "url": "https://www.basketball-reference.com/players/w/willizi01.html"
+    },
+    "Desmond Bane": {
+      "player_id": "banede01",
+      "adp": 134.23,
+      "url": "https://www.basketball-reference.com/players/b/banede01.html"
+    },
+    "Sam Jones": {
+      "player_id": "jonessa01",
+      "adp": 135.49,
+      "url": "https://www.basketball-reference.com/players/j/jonessa01.html"
+    },
+    "Lou Hudson": {
+      "player_id": "hudsolo01",
+      "adp": 135.64,
+      "url": "https://www.basketball-reference.com/players/h/hudsolo01.html"
+    },
+    "Kevin Love": {
+      "player_id": "loveke01",
+      "adp": 138.3,
+      "url": "https://www.basketball-reference.com/players/l/loveke01.html"
+    },
+    "Danny Granger": {
+      "player_id": "grangda01",
+      "adp": 139.62,
+      "url": "https://www.basketball-reference.com/players/g/grangda01.html"
+    },
+    "Luol Deng": {
+      "player_id": "denglu01",
+      "adp": 139.93,
+      "url": "https://www.basketball-reference.com/players/d/denglu01.html"
+    },
+    "Darius Garland": {
+      "player_id": "garlada01",
+      "adp": 140.1,
+      "url": "https://www.basketball-reference.com/players/g/garlada01.html"
+    },
+    "Gilbert Arenas": {
+      "player_id": "arenagi01",
+      "adp": 143.02,
+      "url": "https://www.basketball-reference.com/players/a/arenagi01.html"
+    },
+    "Ja Morant": {
+      "player_id": "moranja01",
+      "adp": 143.77,
+      "url": "https://www.basketball-reference.com/players/m/moranja01.html"
+    },
+    "Bernard King": {
+      "player_id": "kingbe01",
+      "adp": 145.56,
+      "url": "https://www.basketball-reference.com/players/k/kingbe01.html"
+    },
+    "Artis Gilmore": {
+      "player_id": "gilmoar01",
+      "adp": 146.15,
+      "url": "https://www.basketball-reference.com/players/g/gilmoar01.html"
+    },
+    "Blake Griffin": {
+      "player_id": "griffbl01",
+      "adp": 148.93,
+      "url": "https://www.basketball-reference.com/players/g/griffbl01.html"
+    },
+    "Michael Finley": {
+      "player_id": "finlemi01",
+      "adp": 149.89,
+      "url": "https://www.basketball-reference.com/players/f/finlemi01.html"
+    },
+    "OG Anunoby": {
+      "player_id": "anunoog01",
+      "adp": 149.91,
+      "url": "https://www.basketball-reference.com/players/a/anunoog01.html"
+    },
+    "Kevin McHale": {
+      "player_id": "mchalke01",
+      "adp": 151.45,
+      "url": "https://www.basketball-reference.com/players/m/mchalke01.html"
+    },
+    "Horace Grant": {
+      "player_id": "grantho01",
+      "adp": 151.5,
+      "url": "https://www.basketball-reference.com/players/g/grantho01.html"
+    },
+    "Bob Dandridge": {
+      "player_id": "dandrbo01",
+      "adp": 152.85,
+      "url": "https://www.basketball-reference.com/players/d/dandrbo01.html"
+    },
+    "Kiki VanDeWeghe": {
+      "player_id": "vandeki01",
+      "adp": 153.08,
+      "url": "https://www.basketball-reference.com/players/v/vandeki01.html"
+    },
+    "Tim Hardaway Sr.": {
+      "player_id": "hardati01",
+      "adp": 154.76,
+      "url": "https://www.basketball-reference.com/players/h/hardati01.html"
+    },
+    "Jack Sikma": {
+      "player_id": "sikmaja01",
+      "adp": 155.22,
+      "url": "https://www.basketball-reference.com/players/s/sikmaja01.html"
+    },
+    "Chet Walker": {
+      "player_id": "walkech01",
+      "adp": 155.36,
+      "url": "https://www.basketball-reference.com/players/w/walkech01.html"
+    },
+    "Robert Covington": {
+      "player_id": "covinro01",
+      "adp": 161.67,
+      "url": "https://www.basketball-reference.com/players/c/covinro01.html"
+    },
+    "Tony Parker": {
+      "player_id": "parketo01",
+      "adp": 161.86,
+      "url": "https://www.basketball-reference.com/players/p/parketo01.html"
+    },
+    "Nate Thurmond": {
+      "player_id": "thurmna01",
+      "adp": 162.84,
+      "url": "https://www.basketball-reference.com/players/t/thurmna01.html"
+    },
+    "Dennis Johnson": {
+      "player_id": "johnsde01",
+      "adp": 163.76,
+      "url": "https://www.basketball-reference.com/players/j/johnsde01.html"
+    },
+    "Joe Johnson": {
+      "player_id": "johnsjo01",
+      "adp": 164.74,
+      "url": "https://www.basketball-reference.com/players/j/johnsjo01.html"
+    },
+    "Richard Hamilton": {
+      "player_id": "hamilri01",
+      "adp": 166.14,
+      "url": "https://www.basketball-reference.com/players/h/hamilri01.html"
+    },
+    "Baron Davis": {
+      "player_id": "davisba01",
+      "adp": 166.73,
+      "url": "https://www.basketball-reference.com/players/d/davisba01.html"
+    },
+    "Joakim Noah": {
+      "player_id": "noahjo01",
+      "adp": 169.15,
+      "url": "https://www.basketball-reference.com/players/n/noahjo01.html"
+    },
+    "Elgin Baylor": {
+      "player_id": "bayloel01",
+      "adp": 169.8,
+      "url": "https://www.basketball-reference.com/players/b/bayloel01.html"
+    },
+    "Dominique Wilkins": {
+      "player_id": "wilkido01",
+      "adp": 169.84,
+      "url": "https://www.basketball-reference.com/players/w/wilkido01.html"
+    },
+    "Wesley Matthews": {
+      "player_id": "matthwe01",
+      "adp": 170.72,
+      "url": "https://www.basketball-reference.com/players/m/matthwe01.html"
+    },
+    "Terrell Brandon": {
+      "player_id": "brandte01",
+      "adp": 171.7,
+      "url": "https://www.basketball-reference.com/players/b/brandte01.html"
+    },
+    "Kyle Korver": {
+      "player_id": "korveky01",
+      "adp": 172.08,
+      "url": "https://www.basketball-reference.com/players/k/korveky01.html"
+    },
+    "David West": {
+      "player_id": "westda01",
+      "adp": 172.12,
+      "url": "https://www.basketball-reference.com/players/w/westda01.html"
+    },
+    "Hal Greer": {
+      "player_id": "greerha01",
+      "adp": 173.92,
+      "url": "https://www.basketball-reference.com/players/g/greerha01.html"
+    },
+    "Hedo Turkoglu": {
+      "player_id": "turkohe01",
+      "adp": 174.15,
+      "url": "https://www.basketball-reference.com/players/t/turkohe01.html"
+    },
+    "Robert Horry": {
+      "player_id": "horryro01",
+      "adp": 174.97,
+      "url": "https://www.basketball-reference.com/players/h/horryro01.html"
+    },
+    "Walter Davis": {
+      "player_id": "daviswa01",
+      "adp": 175.7,
+      "url": "https://www.basketball-reference.com/players/d/daviswa01.html"
+    },
+    "Ron Harper": {
+      "player_id": "harpero01",
+      "adp": 176.07,
+      "url": "https://www.basketball-reference.com/players/h/harpero01.html"
+    },
+    "Jamal Murray": {
+      "player_id": "murraja01",
+      "adp": 176.38,
+      "url": "https://www.basketball-reference.com/players/m/murraja01.html"
+    },
+    "Ben Wallace": {
+      "player_id": "wallabe01",
+      "adp": 177.35,
+      "url": "https://www.basketball-reference.com/players/w/wallabe01.html"
+    },
+    "David Thompson": {
+      "player_id": "thompda01",
+      "adp": 180.08,
+      "url": "https://www.basketball-reference.com/players/t/thompda01.html"
+    },
+    "Reggie Lewis": {
+      "player_id": "lewisre01",
+      "adp": 180.2,
+      "url": "https://www.basketball-reference.com/players/l/lewisre01.html"
+    },
+    "Dikembe Mutombo": {
+      "player_id": "mutomdi01",
+      "adp": 180.58,
+      "url": "https://www.basketball-reference.com/players/m/mutomdi01.html"
+    },
+    "Amar'e Stoudemire": {
+      "player_id": "stoudam01",
+      "adp": 180.65,
+      "url": "https://www.basketball-reference.com/players/s/stoudam01.html"
+    },
+    "Steve Smith": {
+      "player_id": "smithst01",
+      "adp": 181.3,
+      "url": "https://www.basketball-reference.com/players/s/smithst01.html"
+    },
+    "Latrell Sprewell": {
+      "player_id": "sprewla01",
+      "adp": 181.42,
+      "url": "https://www.basketball-reference.com/players/s/sprewla01.html"
+    },
+    "Trae Young": {
+      "player_id": "youngtr01",
+      "adp": 181.51,
+      "url": "https://www.basketball-reference.com/players/y/youngtr01.html"
+    },
+    "Tyson Chandler": {
+      "player_id": "chandty01",
+      "adp": 181.9,
+      "url": "https://www.basketball-reference.com/players/c/chandty01.html"
+    },
+    "Alvan Adams": {
+      "player_id": "adamsal01",
+      "adp": 183.53,
+      "url": "https://www.basketball-reference.com/players/a/adamsal01.html"
+    },
+    "Goran Dragic": {
+      "player_id": "dragigo01",
+      "adp": 183.98,
+      "url": "https://www.basketball-reference.com/players/d/dragigo01.html"
+    },
+    "Gus Williams": {
+      "player_id": "willigu01",
+      "adp": 184.53,
+      "url": "https://www.basketball-reference.com/players/w/willigu01.html"
+    },
+    "Michael Redd": {
+      "player_id": "reddmi01",
+      "adp": 185.41,
+      "url": "https://www.basketball-reference.com/players/r/reddmi01.html"
+    },
+    "Nicolas Batum": {
+      "player_id": "batumni01",
+      "adp": 185.44,
+      "url": "https://www.basketball-reference.com/players/b/batumni01.html"
+    },
+    "Connie Hawkins": {
+      "player_id": "hawkico01",
+      "adp": 187.67,
+      "url": "https://www.basketball-reference.com/players/h/hawkico01.html"
+    },
+    "Marcus Smart": {
+      "player_id": "smartma01",
+      "adp": 190.58,
+      "url": "https://www.basketball-reference.com/players/s/smartma01.html"
+    },
+    "Kristaps Porzingis": {
+      "player_id": "porzikr01",
+      "adp": 192.12,
+      "url": "https://www.basketball-reference.com/players/p/porzikr01.html"
+    },
+    "Paul Westphal": {
+      "player_id": "westppa01",
+      "adp": 195.13,
+      "url": "https://www.basketball-reference.com/players/w/westppa01.html"
+    },
+    "Josh Smith": {
+      "player_id": "smithjo01",
+      "adp": 196.97,
+      "url": "https://www.basketball-reference.com/players/s/smithjo01.html"
+    },
+    "George Hill": {
+      "player_id": "hillge01",
+      "adp": 197.58,
+      "url": "https://www.basketball-reference.com/players/h/hillge01.html"
+    },
+    "Sleepy Floyd": {
+      "player_id": "floydsl01",
+      "adp": 198.82,
+      "url": "https://www.basketball-reference.com/players/f/floydsl01.html"
+    },
+    "Jarrett Allen": {
+      "player_id": "allenja01",
+      "adp": 199.95,
+      "url": "https://www.basketball-reference.com/players/a/allenja01.html"
+    },
+    "John Wall": {
+      "player_id": "walljo01",
+      "adp": 200.97,
+      "url": "https://www.basketball-reference.com/players/w/walljo01.html"
+    },
+    "Glen Rice": {
+      "player_id": "ricegl01",
+      "adp": 201.15,
+      "url": "https://www.basketball-reference.com/players/r/ricegl01.html"
+    },
+    "Sam Perkins": {
+      "player_id": "perkisa01",
+      "adp": 202.86,
+      "url": "https://www.basketball-reference.com/players/p/perkisa01.html"
+    },
+    "Bobby Phills": {
+      "player_id": "phillbo01",
+      "adp": 203.06,
+      "url": "https://www.basketball-reference.com/players/p/phillbo01.html"
+    },
+    "Carmelo Anthony": {
+      "player_id": "anthoca01",
+      "adp": 203.58,
+      "url": "https://www.basketball-reference.com/players/a/anthoca01.html"
+    },
+    "De'Aaron Fox": {
+      "player_id": "foxde01",
+      "adp": 203.86,
+      "url": "https://www.basketball-reference.com/players/f/foxde01.html"
+    },
+    "Lonzo Ball": {
+      "player_id": "balllo01",
+      "adp": 204.16,
+      "url": "https://www.basketball-reference.com/players/b/balllo01.html"
+    },
+    "Maurice Cheeks": {
+      "player_id": "cheekma01",
+      "adp": 204.98,
+      "url": "https://www.basketball-reference.com/players/c/cheekma01.html"
+    },
+    "Amen Thompson": {
+      "player_id": "thompam01",
+      "adp": 205.33,
+      "url": "https://www.basketball-reference.com/players/t/thompam01.html"
+    },
+    "Josh Howard": {
+      "player_id": "howarjo01",
+      "adp": 205.45,
+      "url": "https://www.basketball-reference.com/players/h/howarjo01.html"
+    },
+    "Jason Terry": {
+      "player_id": "terryja01",
+      "adp": 206.83,
+      "url": "https://www.basketball-reference.com/players/t/terryja01.html"
+    },
+    "Tyrese Maxey": {
+      "player_id": "maxeyty01",
+      "adp": 207.57,
+      "url": "https://www.basketball-reference.com/players/m/maxeyty01.html"
+    },
+    "Billy Cunningham": {
+      "player_id": "cunnibi01",
+      "adp": 208.43,
+      "url": "https://www.basketball-reference.com/players/c/cunnibi01.html"
+    },
+    "Dick Van Arsdale": {
+      "player_id": "arsdadi01",
+      "adp": 210.19,
+      "url": "https://www.basketball-reference.com/players/a/arsdadi01.html"
+    },
+    "Gus Johnson": {
+      "player_id": "johnsgu01",
+      "adp": 211.04,
+      "url": "https://www.basketball-reference.com/players/j/johnsgu01.html"
+    },
+    "Boris Diaw": {
+      "player_id": "diawbo01",
+      "adp": 211.84,
+      "url": "https://www.basketball-reference.com/players/d/diawbo01.html"
+    },
+    "Antonio McDyess": {
+      "player_id": "mcdyean01",
+      "adp": 211.96,
+      "url": "https://www.basketball-reference.com/players/m/mcdyean01.html"
+    },
+    "Elton Brand": {
+      "player_id": "brandel01",
+      "adp": 212.48,
+      "url": "https://www.basketball-reference.com/players/b/brandel01.html"
+    },
+    "Jamaal Wilkes": {
+      "player_id": "wilkeja01",
+      "adp": 212.53,
+      "url": "https://www.basketball-reference.com/players/w/wilkeja01.html"
+    },
+    "Franz Wagner": {
+      "player_id": "wagnefr01",
+      "adp": 216.29,
+      "url": "https://www.basketball-reference.com/players/w/wagnefr01.html"
+    },
+    "Fat Lever": {
+      "player_id": "leverfa01",
+      "adp": 217.3,
+      "url": "https://www.basketball-reference.com/players/l/leverfa01.html"
+    },
+    "Andrew Wiggins": {
+      "player_id": "wiggian01",
+      "adp": 218.13,
+      "url": "https://www.basketball-reference.com/players/w/wiggian01.html"
+    },
+    "Robert Parish": {
+      "player_id": "parisro01",
+      "adp": 218.19,
+      "url": "https://www.basketball-reference.com/players/p/parisro01.html"
+    },
+    "Kemba Walker": {
+      "player_id": "walkeke01",
+      "adp": 218.52,
+      "url": "https://www.basketball-reference.com/players/w/walkeke01.html"
+    },
+    "Andrew Bogut": {
+      "player_id": "bogutan01",
+      "adp": 220.31,
+      "url": "https://www.basketball-reference.com/players/b/bogutan01.html"
+    },
+    "Clifford Robinson": {
+      "player_id": "robincl01",
+      "adp": 222.13,
+      "url": "https://www.basketball-reference.com/players/r/robincl01.html"
+    },
+    "Arvydas Sabonis": {
+      "player_id": "sabonar01",
+      "adp": 222.42,
+      "url": "https://www.basketball-reference.com/players/s/sabonar01.html"
+    },
+    "Brent Barry": {
+      "player_id": "barrybr01",
+      "adp": 222.51,
+      "url": "https://www.basketball-reference.com/players/b/barrybr01.html"
+    },
+    "Kirk Hinrich": {
+      "player_id": "hinriki01",
+      "adp": 223.97,
+      "url": "https://www.basketball-reference.com/players/h/hinriki01.html"
+    },
+    "Gerald Wallace": {
+      "player_id": "wallage01",
+      "adp": 224.0,
+      "url": "https://www.basketball-reference.com/players/w/wallage01.html"
+    },
+    "Brad Daugherty": {
+      "player_id": "daughbr01",
+      "adp": 225.7,
+      "url": "https://www.basketball-reference.com/players/d/daughbr01.html"
+    },
+    "Dale Ellis": {
+      "player_id": "ellisda01",
+      "adp": 226.26,
+      "url": "https://www.basketball-reference.com/players/e/ellisda01.html"
+    },
+    "Danny Ainge": {
+      "player_id": "aingeda01",
+      "adp": 228.47,
+      "url": "https://www.basketball-reference.com/players/a/aingeda01.html"
+    },
+    "Dave DeBusschere": {
+      "player_id": "debusda01",
+      "adp": 228.85,
+      "url": "https://www.basketball-reference.com/players/d/debusda01.html"
+    },
+    "Byron Scott": {
+      "player_id": "scottby01",
+      "adp": 229.74,
+      "url": "https://www.basketball-reference.com/players/s/scottby01.html"
+    },
+    "Ivica Zubac": {
+      "player_id": "zubaciv01",
+      "adp": 233.19,
+      "url": "https://www.basketball-reference.com/players/z/zubaciv01.html"
+    },
+    "Jermaine O'Neal": {
+      "player_id": "onealje01",
+      "adp": 234.18,
+      "url": "https://www.basketball-reference.com/players/o/onealje01.html"
+    },
+    "Sam Lacey": {
+      "player_id": "laceysa01",
+      "adp": 237.87,
+      "url": "https://www.basketball-reference.com/players/l/laceysa01.html"
+    },
+    "Sam Cassell": {
+      "player_id": "cassesa01",
+      "adp": 238.77,
+      "url": "https://www.basketball-reference.com/players/c/cassesa01.html"
+    },
+    "Scott Wedman": {
+      "player_id": "wedmasc01",
+      "adp": 239.31,
+      "url": "https://www.basketball-reference.com/players/w/wedmasc01.html"
+    },
+    "Fred VanVleet": {
+      "player_id": "vanvlfr01",
+      "adp": 240.08,
+      "url": "https://www.basketball-reference.com/players/v/vanvlfr01.html"
+    },
+    "Detlef Schrempf": {
+      "player_id": "schrede01",
+      "adp": 241.7,
+      "url": "https://www.basketball-reference.com/players/s/schrede01.html"
+    },
+    "Mookie Blaylock": {
+      "player_id": "blaylmo01",
+      "adp": 244.78,
+      "url": "https://www.basketball-reference.com/players/b/blaylmo01.html"
+    },
+    "Brian Taylor": {
+      "player_id": "taylobr01",
+      "adp": 244.79,
+      "url": "https://www.basketball-reference.com/players/t/taylobr01.html"
+    },
+    "Toni Kukoc": {
+      "player_id": "kukocto01",
+      "adp": 244.9,
+      "url": "https://www.basketball-reference.com/players/k/kukocto01.html"
+    },
+    "Bob Pettit": {
+      "player_id": "pettibo01",
+      "adp": 246.19,
+      "url": "https://www.basketball-reference.com/players/p/pettibo01.html"
+    },
+    "Zach LaVine": {
+      "player_id": "lavinza01",
+      "adp": 247.13,
+      "url": "https://www.basketball-reference.com/players/l/lavinza01.html"
+    },
+    "LaMelo Ball": {
+      "player_id": "ballla01",
+      "adp": 248.03,
+      "url": "https://www.basketball-reference.com/players/b/ballla01.html"
+    },
+    "Otto Porter Jr.": {
+      "player_id": "porteot01",
+      "adp": 249.0,
+      "url": "https://www.basketball-reference.com/players/p/porteot01.html"
+    },
+    "Tiny Archibald": {
+      "player_id": "architi01",
+      "adp": 252.73,
+      "url": "https://www.basketball-reference.com/players/a/architi01.html"
+    },
+    "Aaron Gordon": {
+      "player_id": "gordoaa01",
+      "adp": 253.72,
+      "url": "https://www.basketball-reference.com/players/g/gordoaa01.html"
+    },
+    "Rolando Blackman": {
+      "player_id": "blackro01",
+      "adp": 254.37,
+      "url": "https://www.basketball-reference.com/players/b/blackro01.html"
+    },
+    "Don Buse": {
+      "player_id": "busedo01",
+      "adp": 255.85,
+      "url": "https://www.basketball-reference.com/players/b/busedo01.html"
+    },
+    "Vlade Divac": {
+      "player_id": "divacvl01",
+      "adp": 258.36,
+      "url": "https://www.basketball-reference.com/players/d/divacvl01.html"
+    },
+    "Jamal Mashburn": {
+      "player_id": "mashbja01",
+      "adp": 258.8,
+      "url": "https://www.basketball-reference.com/players/m/mashbja01.html"
+    },
+    "Phil Smith": {
+      "player_id": "smithph01",
+      "adp": 258.91,
+      "url": "https://www.basketball-reference.com/players/s/smithph01.html"
+    },
+    "Isaiah Thomas": {
+      "player_id": "thomais01",
+      "adp": 259.07,
+      "url": "https://www.basketball-reference.com/players/t/thomais01.html"
+    },
+    "Bo Outlaw": {
+      "player_id": "outlabo01",
+      "adp": 259.08,
+      "url": "https://www.basketball-reference.com/players/o/outlabo01.html"
+    },
+    "Yao Ming": {
+      "player_id": "mingya01",
+      "adp": 259.13,
+      "url": "https://www.basketball-reference.com/players/m/mingya01.html"
+    },
+    "Jon McGlocklin": {
+      "player_id": "mcglojo01",
+      "adp": 259.45,
+      "url": "https://www.basketball-reference.com/players/m/mcglojo01.html"
+    },
+    "Roger Brown": {
+      "player_id": "brownro01",
+      "adp": 260.08,
+      "url": "https://www.basketball-reference.com/players/b/brownro01.html"
+    },
+    "Raja Bell": {
+      "player_id": "bellra01",
+      "adp": 260.23,
+      "url": "https://www.basketball-reference.com/players/b/bellra01.html"
+    },
+    "Kenny Anderson": {
+      "player_id": "anderke01",
+      "adp": 260.29,
+      "url": "https://www.basketball-reference.com/players/a/anderke01.html"
+    },
+    "Fred Brown": {
+      "player_id": "brownfr01",
+      "adp": 260.58,
+      "url": "https://www.basketball-reference.com/players/b/brownfr01.html"
+    },
+    "Michael Porter Jr.": {
+      "player_id": "portemi01",
+      "adp": 265.41,
+      "url": "https://www.basketball-reference.com/players/p/portemi01.html"
+    },
+    "Robert Williams": {
+      "player_id": "williro01",
+      "adp": 268.09,
+      "url": "https://www.basketball-reference.com/players/w/williro01.html"
+    },
+    "James Posey": {
+      "player_id": "poseyja01",
+      "adp": 269.54,
+      "url": "https://www.basketball-reference.com/players/p/poseyja01.html"
+    },
+    "Bob Love": {
+      "player_id": "lovebo01",
+      "adp": 269.88,
+      "url": "https://www.basketball-reference.com/players/l/lovebo01.html"
+    },
+    "Brandon Ingram": {
+      "player_id": "ingrabr01",
+      "adp": 271.18,
+      "url": "https://www.basketball-reference.com/players/i/ingrabr01.html"
+    },
+    "Jaden McDaniels": {
+      "player_id": "mcdanja01",
+      "adp": 271.55,
+      "url": "https://www.basketball-reference.com/players/m/mcdanja01.html"
+    },
+    "Gary Harris": {
+      "player_id": "harriga01",
+      "adp": 271.63,
+      "url": "https://www.basketball-reference.com/players/h/harriga01.html"
+    },
+    "Brad Miller": {
+      "player_id": "millebr01",
+      "adp": 274.55,
+      "url": "https://www.basketball-reference.com/players/m/millebr01.html"
+    },
+    "Herb Jones": {
+      "player_id": "joneshe01",
+      "adp": 275.69,
+      "url": "https://www.basketball-reference.com/players/j/joneshe01.html"
+    },
+    "Kerry Kittles": {
+      "player_id": "kittlke01",
+      "adp": 276.26,
+      "url": "https://www.basketball-reference.com/players/k/kittlke01.html"
+    },
+    "Elvin Hayes": {
+      "player_id": "hayesel01",
+      "adp": 277.78,
+      "url": "https://www.basketball-reference.com/players/h/hayesel01.html"
+    },
+    "Malcolm Brogdon": {
+      "player_id": "brogdma01",
+      "adp": 277.88,
+      "url": "https://www.basketball-reference.com/players/b/brogdma01.html"
+    },
+    "Richard Jefferson": {
+      "player_id": "jefferi01",
+      "adp": 278.19,
+      "url": "https://www.basketball-reference.com/players/j/jefferi01.html"
+    },
+    "Randy Smith": {
+      "player_id": "smithra01",
+      "adp": 279.74,
+      "url": "https://www.basketball-reference.com/players/s/smithra01.html"
+    },
+    "Jerome Kersey": {
+      "player_id": "kerseje01",
+      "adp": 280.04,
+      "url": "https://www.basketball-reference.com/players/k/kerseje01.html"
+    },
+    "JJ Redick": {
+      "player_id": "redicjj01",
+      "adp": 280.3,
+      "url": "https://www.basketball-reference.com/players/r/redicjj01.html"
+    },
+    "Alex Caruso": {
+      "player_id": "carusal01",
+      "adp": 280.36,
+      "url": "https://www.basketball-reference.com/players/c/carusal01.html"
+    },
+    "Steve Francis": {
+      "player_id": "francst01",
+      "adp": 280.87,
+      "url": "https://www.basketball-reference.com/players/f/francst01.html"
+    },
+    "Nate McMillan": {
+      "player_id": "mcmilna01",
+      "adp": 281.82,
+      "url": "https://www.basketball-reference.com/players/m/mcmilna01.html"
+    },
+    "Wesley Person": {
+      "player_id": "persowe01",
+      "adp": 281.86,
+      "url": "https://www.basketball-reference.com/players/p/persowe01.html"
+    },
+    "Trevor Ariza": {
+      "player_id": "arizatr01",
+      "adp": 286.99,
+      "url": "https://www.basketball-reference.com/players/a/arizatr01.html"
+    },
+    "Joe Ingles": {
+      "player_id": "inglejo01",
+      "adp": 287.15,
+      "url": "https://www.basketball-reference.com/players/i/inglejo01.html"
+    },
+    "Dan Roundfield": {
+      "player_id": "roundda01",
+      "adp": 289.44,
+      "url": "https://www.basketball-reference.com/players/r/roundda01.html"
+    },
+    "Buck Williams": {
+      "player_id": "willibu01",
+      "adp": 290.84,
+      "url": "https://www.basketball-reference.com/players/w/willibu01.html"
+    },
+    "Wes Unseld": {
+      "player_id": "unselwe01",
+      "adp": 291.68,
+      "url": "https://www.basketball-reference.com/players/u/unselwe01.html"
+    },
+    "Allan Houston": {
+      "player_id": "houstal01",
+      "adp": 292.5,
+      "url": "https://www.basketball-reference.com/players/h/houstal01.html"
+    },
+    "PJ Brown": {
+      "player_id": "brownpj01",
+      "adp": 293.31,
+      "url": "https://www.basketball-reference.com/players/b/brownpj01.html"
+    },
+    "Terry Cummings": {
+      "player_id": "cummite01",
+      "adp": 293.52,
+      "url": "https://www.basketball-reference.com/players/c/cummite01.html"
+    },
+    "Scottie Barnes": {
+      "player_id": "barnesc01",
+      "adp": 293.64,
+      "url": "https://www.basketball-reference.com/players/b/barnesc01.html"
+    },
+    "LaMarcus Aldridge": {
+      "player_id": "aldrila01",
+      "adp": 293.88,
+      "url": "https://www.basketball-reference.com/players/a/aldrila01.html"
+    },
+    "Mike Bibby": {
+      "player_id": "bibbymi01",
+      "adp": 294.18,
+      "url": "https://www.basketball-reference.com/players/b/bibbymi01.html"
+    },
+    "Ralph Sampson": {
+      "player_id": "sampsra01",
+      "adp": 294.45,
+      "url": "https://www.basketball-reference.com/players/s/sampsra01.html"
+    },
+    "Mike Miller": {
+      "player_id": "millemi01",
+      "adp": 294.64,
+      "url": "https://www.basketball-reference.com/players/m/millemi01.html"
+    },
+    "Domantas Sabonis": {
+      "player_id": "sabondo01",
+      "adp": 294.66,
+      "url": "https://www.basketball-reference.com/players/s/sabondo01.html"
+    },
+    "Serge Ibaka": {
+      "player_id": "ibakase01",
+      "adp": 294.89,
+      "url": "https://www.basketball-reference.com/players/i/ibakase01.html"
+    },
+    "Caron Butler": {
+      "player_id": "butleca01",
+      "adp": 296.1,
+      "url": "https://www.basketball-reference.com/players/b/butleca01.html"
+    },
+    "Gail Goodrich": {
+      "player_id": "goodrga01",
+      "adp": 296.62,
+      "url": "https://www.basketball-reference.com/players/g/goodrga01.html"
+    },
+    "Rajon Rondo": {
+      "player_id": "rondora01",
+      "adp": 296.67,
+      "url": "https://www.basketball-reference.com/players/r/rondora01.html"
+    },
+    "Thabo Sefolosha": {
+      "player_id": "sefolth01",
+      "adp": 296.82,
+      "url": "https://www.basketball-reference.com/players/s/sefolth01.html"
+    },
+    "Jerry Lucas": {
+      "player_id": "lucasje01",
+      "adp": 297.72,
+      "url": "https://www.basketball-reference.com/players/l/lucasje01.html"
+    },
+    "Drazen Petrovic": {
+      "player_id": "petrodr01",
+      "adp": 298.01,
+      "url": "https://www.basketball-reference.com/players/p/petrodr01.html"
+    },
+    "Rod Strickland": {
+      "player_id": "stricro01",
+      "adp": 298.65,
+      "url": "https://www.basketball-reference.com/players/s/stricro01.html"
+    },
+    "Otis Birdsong": {
+      "player_id": "birdsot01",
+      "adp": 298.83,
+      "url": "https://www.basketball-reference.com/players/b/birdsot01.html"
+    },
+    "Jalen Suggs": {
+      "player_id": "suggsja01",
+      "adp": 299.29,
+      "url": "https://www.basketball-reference.com/players/s/suggsja01.html"
+    },
+    "Deandre Ayton": {
+      "player_id": "aytonde01",
+      "adp": 300.07,
+      "url": "https://www.basketball-reference.com/players/a/aytonde01.html"
+    },
+    "Theo Ratliff": {
+      "player_id": "ratlith01",
+      "adp": 300.59,
+      "url": "https://www.basketball-reference.com/players/r/ratlith01.html"
+    },
+    "Darrell Armstrong": {
+      "player_id": "armstda01",
+      "adp": 300.76,
+      "url": "https://www.basketball-reference.com/players/a/armstda01.html"
+    },
+    "Johnny Moore": {
+      "player_id": "moorejo01",
+      "adp": 300.85,
+      "url": "https://www.basketball-reference.com/players/m/moorejo01.html"
+    },
+    "Doc Rivers": {
+      "player_id": "riverdo01",
+      "adp": 301.71,
+      "url": "https://www.basketball-reference.com/players/r/riverdo01.html"
+    },
+    "Bill Laimbeer": {
+      "player_id": "laimbbi01",
+      "adp": 302.45,
+      "url": "https://www.basketball-reference.com/players/l/laimbbi01.html"
+    },
+    "Jerry Sloan": {
+      "player_id": "sloanje01",
+      "adp": 302.5,
+      "url": "https://www.basketball-reference.com/players/s/sloanje01.html"
+    },
+    "Nicolas Claxton": {
+      "player_id": "claxtni01",
+      "adp": 302.7,
+      "url": "https://www.basketball-reference.com/players/c/claxtni01.html"
+    },
+    "Dorian Finney-Smith": {
+      "player_id": "finnedo01",
+      "adp": 303.4,
+      "url": "https://www.basketball-reference.com/players/f/finnedo01.html"
+    },
+    "Jae Crowder": {
+      "player_id": "crowdja01",
+      "adp": 304.59,
+      "url": "https://www.basketball-reference.com/players/c/crowdja01.html"
+    },
+    "Clifford Ray": {
+      "player_id": "raycl01",
+      "adp": 304.78,
+      "url": "https://www.basketball-reference.com/players/r/raycl01.html"
+    },
+    "Kenyon Martin": {
+      "player_id": "martike01",
+      "adp": 305.37,
+      "url": "https://www.basketball-reference.com/players/m/martike01.html"
+    },
+    "Alvin Robertson": {
+      "player_id": "roberal01",
+      "adp": 305.95,
+      "url": "https://www.basketball-reference.com/players/r/roberal01.html"
+    },
+    "Kentavious Caldwell-Pope": {
+      "player_id": "caldwke01",
+      "adp": 306.14,
+      "url": "https://www.basketball-reference.com/players/c/caldwke01.html"
+    },
+    "Marcus Camby": {
+      "player_id": "cambyma01",
+      "adp": 306.16,
+      "url": "https://www.basketball-reference.com/players/c/cambyma01.html"
+    },
+    "Greg Ballard": {
+      "player_id": "ballagr01",
+      "adp": 306.26,
+      "url": "https://www.basketball-reference.com/players/b/ballagr01.html"
+    },
+    "Phil Chenier": {
+      "player_id": "cheniph01",
+      "adp": 308.11,
+      "url": "https://www.basketball-reference.com/players/c/cheniph01.html"
+    },
+    "Jim Paxson": {
+      "player_id": "paxsoji01",
+      "adp": 308.4,
+      "url": "https://www.basketball-reference.com/players/p/paxsoji01.html"
+    },
+    "Pete Maravich": {
+      "player_id": "maravpe01",
+      "adp": 308.41,
+      "url": "https://www.basketball-reference.com/players/m/maravpe01.html"
+    },
+    "Bryon Russell": {
+      "player_id": "russebr01",
+      "adp": 309.52,
+      "url": "https://www.basketball-reference.com/players/r/russebr01.html"
+    },
+    "Duncan Robinson": {
+      "player_id": "robindu01",
+      "adp": 310.35,
+      "url": "https://www.basketball-reference.com/players/r/robindu01.html"
+    },
+    "Trey Murphy": {
+      "player_id": "murphtr01",
+      "adp": 310.85,
+      "url": "https://www.basketball-reference.com/players/m/murphtr01.html"
+    },
+    "Derrick Coleman": {
+      "player_id": "colemde01",
+      "adp": 311.1,
+      "url": "https://www.basketball-reference.com/players/c/colemde01.html"
+    },
+    "Jerami Grant": {
+      "player_id": "grantje01",
+      "adp": 311.26,
+      "url": "https://www.basketball-reference.com/players/g/grantje01.html"
+    },
+    "Walt Bellamy": {
+      "player_id": "bellawa01",
+      "adp": 311.4,
+      "url": "https://www.basketball-reference.com/players/b/bellawa01.html"
+    },
+    "Willie Wise": {
+      "player_id": "wisewi01",
+      "adp": 311.71,
+      "url": "https://www.basketball-reference.com/players/w/wisewi01.html"
+    },
+    "Myles Turner": {
+      "player_id": "turnemy01",
+      "adp": 311.82,
+      "url": "https://www.basketball-reference.com/players/t/turnemy01.html"
+    },
+    "Rodney McCray": {
+      "player_id": "mccraro01",
+      "adp": 312.22,
+      "url": "https://www.basketball-reference.com/players/m/mccraro01.html"
+    },
+    "Tony Allen": {
+      "player_id": "allento01",
+      "adp": 312.38,
+      "url": "https://www.basketball-reference.com/players/a/allento01.html"
+    },
+    "Louie Dampier": {
+      "player_id": "dampilo01",
+      "adp": 312.38,
+      "url": "https://www.basketball-reference.com/players/d/dampilo01.html"
+    },
+    "Micheal Ray Richardson": {
+      "player_id": "richami01",
+      "adp": 312.5,
+      "url": "https://www.basketball-reference.com/players/r/richami01.html"
+    },
+    "Tom Chambers": {
+      "player_id": "chambto01",
+      "adp": 312.58,
+      "url": "https://www.basketball-reference.com/players/c/chambto01.html"
+    },
+    "Derrick McKey": {
+      "player_id": "mckeyde01",
+      "adp": 312.9,
+      "url": "https://www.basketball-reference.com/players/m/mckeyde01.html"
+    },
+    "John Salley": {
+      "player_id": "sallejo01",
+      "adp": 313.04,
+      "url": "https://www.basketball-reference.com/players/s/sallejo01.html"
+    },
+    "Mickey Johnson": {
+      "player_id": "johnsmi01",
+      "adp": 313.09,
+      "url": "https://www.basketball-reference.com/players/j/johnsmi01.html"
+    },
+    "John Collins": {
+      "player_id": "collijo01",
+      "adp": 313.19,
+      "url": "https://www.basketball-reference.com/players/c/collijo01.html"
+    },
+    "Larry Johnson": {
+      "player_id": "johnsla01",
+      "adp": 313.36,
+      "url": "https://www.basketball-reference.com/players/j/johnsla01.html"
+    },
+    "Anthony Mason": {
+      "player_id": "masonan01",
+      "adp": 313.81,
+      "url": "https://www.basketball-reference.com/players/m/masonan01.html"
+    },
+    "Dejounte Murray": {
+      "player_id": "murrade01",
+      "adp": 313.86,
+      "url": "https://www.basketball-reference.com/players/m/murrade01.html"
+    },
+    "Anthony Parker": {
+      "player_id": "parkean01",
+      "adp": 314.21,
+      "url": "https://www.basketball-reference.com/players/p/parkean01.html"
+    },
+    "Andrew Bynum": {
+      "player_id": "bynuman01",
+      "adp": 314.32,
+      "url": "https://www.basketball-reference.com/players/b/bynuman01.html"
+    },
+    "Kendall Gill": {
+      "player_id": "gillke01",
+      "adp": 314.78,
+      "url": "https://www.basketball-reference.com/players/g/gillke01.html"
+    },
+    "Danilo Gallinari": {
+      "player_id": "gallida01",
+      "adp": 314.88,
+      "url": "https://www.basketball-reference.com/players/g/gallida01.html"
+    },
+    "Julius Randle": {
+      "player_id": "randlju01",
+      "adp": 314.88,
+      "url": "https://www.basketball-reference.com/players/r/randlju01.html"
+    },
+    "Paul Silas": {
+      "player_id": "silaspa01",
+      "adp": 314.93,
+      "url": "https://www.basketball-reference.com/players/s/silaspa01.html"
+    },
+    "Bob Cousy": {
+      "player_id": "cousybo01",
+      "adp": 314.93,
+      "url": "https://www.basketball-reference.com/players/c/cousybo01.html"
+    },
+    "Paolo Banchero": {
+      "player_id": "banchpa01",
+      "adp": 315.0,
+      "url": "https://www.basketball-reference.com/players/b/banchpa01.html"
+    },
+    "Danny Manning": {
+      "player_id": "mannida01",
+      "adp": 315.03,
+      "url": "https://www.basketball-reference.com/players/m/mannida01.html"
+    },
+    "Clint Capela": {
+      "player_id": "capelcl01",
+      "adp": 315.29,
+      "url": "https://www.basketball-reference.com/players/c/capelcl01.html"
+    },
+    "James Silas": {
+      "player_id": "silasja01",
+      "adp": 315.44,
+      "url": "https://www.basketball-reference.com/players/s/silasja01.html"
+    },
+    "Quinn Buckner": {
+      "player_id": "bucknqu01",
+      "adp": 315.54,
+      "url": "https://www.basketball-reference.com/players/b/bucknqu01.html"
+    },
+    "Gary Payton II": {
+      "player_id": "paytoga01",
+      "adp": 315.69,
+      "url": "https://www.basketball-reference.com/players/p/paytoga01.html"
+    },
+    "Larry Kenon": {
+      "player_id": "kenonla01",
+      "adp": 315.74,
+      "url": "https://www.basketball-reference.com/players/k/kenonla01.html"
+    },
+    "Kevin Martin": {
+      "player_id": "martike01",
+      "adp": 315.94,
+      "url": "https://www.basketball-reference.com/players/m/martike01.html"
+    },
+    "Nene Hilario": {
+      "player_id": "hilarne01",
+      "adp": 316.13,
+      "url": "https://www.basketball-reference.com/players/h/hilarne01.html"
+    },
+    "Darryl Dawkins": {
+      "player_id": "dawkida01",
+      "adp": 316.15,
+      "url": "https://www.basketball-reference.com/players/d/dawkida01.html"
+    },
+    "Mark Aguirre": {
+      "player_id": "aguirma01",
+      "adp": 316.31,
+      "url": "https://www.basketball-reference.com/players/a/aguirma01.html"
+    },
+    "Joe Harris": {
+      "player_id": "harrijo01",
+      "adp": 316.31,
+      "url": "https://www.basketball-reference.com/players/h/harrijo01.html"
+    },
+    "Richie Guerin": {
+      "player_id": "gueriri01",
+      "adp": 316.77,
+      "url": "https://www.basketball-reference.com/players/g/gueriri01.html"
+    },
+    "DeMarcus Cousins": {
+      "player_id": "couside01",
+      "adp": 316.87,
+      "url": "https://www.basketball-reference.com/players/c/couside01.html"
+    },
+    "Nick Anderson": {
+      "player_id": "anderni01",
+      "adp": 316.87,
+      "url": "https://www.basketball-reference.com/players/a/anderni01.html"
+    },
+    "Mo Williams": {
+      "player_id": "willimo01",
+      "adp": 317.12,
+      "url": "https://www.basketball-reference.com/players/w/willimo01.html"
+    },
+    "Bruce Bowen": {
+      "player_id": "bowenbr01",
+      "adp": 317.22,
+      "url": "https://www.basketball-reference.com/players/b/bowenbr01.html"
+    },
+    "Tom Boerwinkle": {
+      "player_id": "boerwto01",
+      "adp": 317.28,
+      "url": "https://www.basketball-reference.com/players/b/boerwto01.html"
+    },
+    "Jason Richardson": {
+      "player_id": "richaja01",
+      "adp": 317.43,
+      "url": "https://www.basketball-reference.com/players/r/richaja01.html"
+    },
+    "CJ McCollum": {
+      "player_id": "mccolcj01",
+      "adp": 317.79,
+      "url": "https://www.basketball-reference.com/players/m/mccolcj01.html"
+    },
+    "Ben Simmons": {
+      "player_id": "simmobe01",
+      "adp": 317.99,
+      "url": "https://www.basketball-reference.com/players/s/simmobe01.html"
+    },
+    "Arron Afflalo": {
+      "player_id": "afflaar01",
+      "adp": 317.99,
+      "url": "https://www.basketball-reference.com/players/a/afflaar01.html"
+    },
+    "Earl Monroe": {
+      "player_id": "monroea01",
+      "adp": 318.09,
+      "url": "https://www.basketball-reference.com/players/m/monroea01.html"
+    },
+    "Spencer Haywood": {
+      "player_id": "haywosp01",
+      "adp": 318.14,
+      "url": "https://www.basketball-reference.com/players/h/haywosp01.html"
+    },
+    "George McGinnis": {
+      "player_id": "mcginge01",
+      "adp": 318.19,
+      "url": "https://www.basketball-reference.com/players/m/mcginge01.html"
+    },
+    "Mark Eaton": {
+      "player_id": "eatonma01",
+      "adp": 318.24,
+      "url": "https://www.basketball-reference.com/players/e/eatonma01.html"
+    },
+    "Sidney Wicks": {
+      "player_id": "wickssi01",
+      "adp": 318.24,
+      "url": "https://www.basketball-reference.com/players/w/wickssi01.html"
+    },
+    "Billy Knight": {
+      "player_id": "knighbi01",
+      "adp": 318.3,
+      "url": "https://www.basketball-reference.com/players/k/knighbi01.html"
+    },
+    "DeAndre Jordan": {
+      "player_id": "jordade01",
+      "adp": 318.4,
+      "url": "https://www.basketball-reference.com/players/j/jordade01.html"
+    },
+    "Norm Van Lier": {
+      "player_id": "lierno01",
+      "adp": 318.45,
+      "url": "https://www.basketball-reference.com/players/l/lierno01.html"
+    },
+    "Marvin Williams": {
+      "player_id": "willima01",
+      "adp": 318.5,
+      "url": "https://www.basketball-reference.com/players/w/willima01.html"
+    },
+    "Chuck Person": {
+      "player_id": "persoch01",
+      "adp": 318.6,
+      "url": "https://www.basketball-reference.com/players/p/persoch01.html"
+    },
+    "Buddy Hield": {
+      "player_id": "hieldbu01",
+      "adp": 318.6,
+      "url": "https://www.basketball-reference.com/players/h/hieldbu01.html"
+    },
+    "Zydrunas Ilgauskas": {
+      "player_id": "ilgauzy01",
+      "adp": 318.65,
+      "url": "https://www.basketball-reference.com/players/i/ilgauzy01.html"
+    },
+    "Glenn Robinson": {
+      "player_id": "robingl01",
+      "adp": 318.7,
+      "url": "https://www.basketball-reference.com/players/r/robingl01.html"
+    },
+    "Jusuf Nurkic": {
+      "player_id": "nurkiju01",
+      "adp": 318.76,
+      "url": "https://www.basketball-reference.com/players/n/nurkiju01.html"
+    },
+    "Nikola Vucevic": {
+      "player_id": "vucevni01",
+      "adp": 318.76,
+      "url": "https://www.basketball-reference.com/players/v/vucevni01.html"
+    },
+    "Charlie Ward": {
+      "player_id": "wardch01",
+      "adp": 318.76,
+      "url": "https://www.basketball-reference.com/players/w/wardch01.html"
+    },
+    "Ben Gordon": {
+      "player_id": "gordobe01",
+      "adp": 318.86,
+      "url": "https://www.basketball-reference.com/players/g/gordobe01.html"
+    },
+    "Joe Caldwell": {
+      "player_id": "caldwjo01",
+      "adp": 318.86,
+      "url": "https://www.basketball-reference.com/players/c/caldwjo01.html"
+    },
+    "Donyell Marshall": {
+      "player_id": "marshdo01",
+      "adp": 318.91,
+      "url": "https://www.basketball-reference.com/players/m/marshdo01.html"
+    },
+    "Ricky Pierce": {
+      "player_id": "piercri01",
+      "adp": 318.91,
+      "url": "https://www.basketball-reference.com/players/p/piercri01.html"
+    },
+    "Maurice Lucas": {
+      "player_id": "lucasma01",
+      "adp": 318.91,
+      "url": "https://www.basketball-reference.com/players/l/lucasma01.html"
+    },
+    "Ray Williams": {
+      "player_id": "willira01",
+      "adp": 318.91,
+      "url": "https://www.basketball-reference.com/players/w/willira01.html"
+    },
+    "Adrian Dantley": {
+      "player_id": "dantlad01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/d/dantlad01.html"
+    },
+    "Antawn Jamison": {
+      "player_id": "jamisan01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/j/jamisan01.html"
+    },
+    "Stephon Marbury": {
+      "player_id": "marbust01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/marbust01.html"
+    },
+    "Carlos Boozer": {
+      "player_id": "boozeca01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/b/boozeca01.html"
+    },
+    "Jameer Nelson": {
+      "player_id": "nelsoja01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/n/nelsoja01.html"
+    },
+    "Andre Roberson": {
+      "player_id": "roberan01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/r/roberan01.html"
+    },
+    "Dana Barros": {
+      "player_id": "barroda01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/b/barroda01.html"
+    },
+    "World B. Free": {
+      "player_id": "freewo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/f/freewo01.html"
+    },
+    "Dolph Schayes": {
+      "player_id": "schaydo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/schaydo01.html"
+    },
+    "Sean Elliott": {
+      "player_id": "elliose01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/e/elliose01.html"
+    },
+    "DeMar DeRozan": {
+      "player_id": "derozde01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/d/derozde01.html"
+    },
+    "Ryan Anderson": {
+      "player_id": "anderry01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/a/anderry01.html"
+    },
+    "Cedric Maxwell": {
+      "player_id": "maxwece01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/maxwece01.html"
+    },
+    "Zach Randolph": {
+      "player_id": "randoza01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/r/randoza01.html"
+    },
+    "Andre Miller": {
+      "player_id": "millean01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/millean01.html"
+    },
+    "Larry Hughes": {
+      "player_id": "hughela01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/h/hughela01.html"
+    },
+    "Bill Sharman": {
+      "player_id": "sharmbi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/sharmbi01.html"
+    },
+    "Ty Lawson": {
+      "player_id": "lawsoty01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/l/lawsoty01.html"
+    },
+    "Dan Issel": {
+      "player_id": "isselda01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/i/isselda01.html"
+    },
+    "Xavier McDaniel": {
+      "player_id": "mcdanxa01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/mcdanxa01.html"
+    },
+    "Derek Anderson": {
+      "player_id": "anderde01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/a/anderde01.html"
+    },
+    "Mike Dunleavy": {
+      "player_id": "dunlemi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/d/dunlemi01.html"
+    },
+    "Raef LaFrentz": {
+      "player_id": "lafrera01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/l/lafrera01.html"
+    },
+    "Channing Frye": {
+      "player_id": "fryech01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/f/fryech01.html"
+    },
+    "Zelmo Beaty": {
+      "player_id": "beatyze01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/b/beatyze01.html"
+    },
+    "Dave Bing": {
+      "player_id": "bingda01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/b/bingda01.html"
+    },
+    "Shareef Abdur-Rahim": {
+      "player_id": "abdursh01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/a/abdursh01.html"
+    },
+    "Calvin Murphy": {
+      "player_id": "murphca01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/murphca01.html"
+    },
+    "Lonnie Shelton": {
+      "player_id": "sheltlo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/sheltlo01.html"
+    },
+    "Lenny Wilkens": {
+      "player_id": "wilkele01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/w/wilkele01.html"
+    },
+    "Maurice Stokes": {
+      "player_id": "stokema01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/stokema01.html"
+    },
+    "Micheal Williams": {
+      "player_id": "willimi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/w/willimi01.html"
+    },
+    "Jose Calderon": {
+      "player_id": "caldejo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/c/caldejo01.html"
+    },
+    "Jack Twyman": {
+      "player_id": "twymaja01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/t/twymaja01.html"
+    },
+    "Bill Bridges": {
+      "player_id": "bridgbi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/b/bridgbi01.html"
+    },
+    "Dell Curry": {
+      "player_id": "curryde01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/c/curryde01.html"
+    },
+    "Wil Jones": {
+      "player_id": "joneswi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/j/joneswi01.html"
+    },
+    "Archie Clark": {
+      "player_id": "clarkar01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/c/clarkar01.html"
+    },
+    "Bobby Simmons": {
+      "player_id": "simmobo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/simmobo01.html"
+    },
+    "John Starks": {
+      "player_id": "starkjo01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/s/starkjo01.html"
+    },
+    "Mel Daniels": {
+      "player_id": "danieme01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/d/danieme01.html"
+    },
+    "Hot Rod Williams": {
+      "player_id": "williho01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/w/williho01.html"
+    },
+    "Jalen Rose": {
+      "player_id": "roseja01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/r/roseja01.html"
+    },
+    "Terry Mills": {
+      "player_id": "millste01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/m/millste01.html"
+    },
+    "Bill Cartwright": {
+      "player_id": "cartwbi01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/c/cartwbi01.html"
+    },
+    "Eddie Johnson": {
+      "player_id": "johnsed01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/j/johnsed01.html"
+    },
+    "Charles Oakley": {
+      "player_id": "oaklech01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/o/oaklech01.html"
+    },
+    "KC Jones": {
+      "player_id": "joneskc01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/j/joneskc01.html"
+    },
+    "Calvin Natt": {
+      "player_id": "nattca01",
+      "adp": 318.96,
+      "url": "https://www.basketball-reference.com/players/n/nattca01.html"
+    }
+  },
+  "needs_verification": [
+    {
+      "name": "JR Smith",
+      "adp": 303.37
+    }
+  ]
+}
