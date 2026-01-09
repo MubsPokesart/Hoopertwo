@@ -17,7 +17,9 @@
       "Skill(superpowers:systematic-debugging)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:pypi.org)",
-      "Bash(poetry run pytest:*)"
+      "Bash(poetry run pytest:*)",
+      "Bash(python scraper.py:*)",
+      "Bash(python:*)"
     ]
   }
 }
