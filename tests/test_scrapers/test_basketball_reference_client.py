@@ -111,10 +111,16 @@ def test_get_player_image_url_verified(br_client):
 
 
 def test_get_player_image_url_not_found(br_client):
-    """Test getting image URL for player not in database."""
+    """Test getting image URL for player not in database.
+
+    Since the client now auto-generates IDs using Basketball Reference
+    naming convention, it should return an estimated URL even for unknown players.
+    """
     url = br_client.get_player_image_url("Unknown Player")
 
-    assert url is None
+    # Should generate URL using BR naming convention: playeun01
+    assert url is not None
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/playeun01.jpg"
 
 
 
