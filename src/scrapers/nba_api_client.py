@@ -1,7 +1,14 @@
-"""NBA API client with rate limiting.
+"""NBA API client for player statistics and filtering.
 
-Fetches player data from NBA.com official API and constructs
-CDN image URLs. Uses nba_api library for API access.
+DEPRECATED: This client is no longer used for player seeding.
+Player data now comes from CSV (data/scoring.csv) via PlayerStatsCSVParser.
+
+Preserved for potential future use:
+- Real-time stats integration
+- Career stats API access
+- Player lookup by name
+
+For player seeding, see: src/scrapers/player_stats_csv_parser.py
 """
 import time
 import logging
@@ -13,42 +20,29 @@ logger = logging.getLogger(__name__)
 
 
 class NBAApiClient:
-    """Client for NBA API with image URL construction.
+    """Client for NBA API player statistics and filtering.
 
     Responsibilities:
     - Find player IDs by name using nba_api
-    - Construct NBA CDN image URLs from player IDs
+    - Access player career statistics
+    - Filter players by games played, career minutes, etc.
     - Enforce rate limiting (default: 20 requests/minute)
     - Handle errors gracefully
 
-    Image URL format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
+    Note: Image handling is done by BasketballReferenceClient.
     """
 
     def __init__(
         self,
-        rate_limit_per_minute: int = 20,
-        cdn_base_url: str = "https://cdn.nba.com/headshots/nba/latest/1040x760"
+        rate_limit_per_minute: int = 20
     ):
         """Initialize NBA API client with rate limiting.
 
         Args:
             rate_limit_per_minute: Maximum API requests per minute
-            cdn_base_url: Base URL for NBA CDN images
         """
         self.rate_limit_per_minute = rate_limit_per_minute
-        self.cdn_base_url = cdn_base_url
         self.request_times: deque = deque()
-
-    def construct_image_url(self, player_id: int) -> str:
-        """Construct NBA CDN image URL from player ID.
-
-        Args:
-            player_id: NBA player ID (e.g., 2544 for LeBron James)
-
-        Returns:
-            Full CDN URL to player headshot image
-        """
-        return f"{self.cdn_base_url}/{player_id}.png"
 
     def _enforce_rate_limit(self) -> None:
         """Enforce rate limiting by waiting if necessary."""
@@ -107,18 +101,3 @@ class NBAApiClient:
         except Exception as e:
             logger.error(f"Failed to find player {player_name}: {e}")
             return None
-
-    def get_player_image_url(self, player_name: str) -> Optional[str]:
-        """Get player image URL by finding player ID and constructing CDN URL.
-
-        Args:
-            player_name: Full player name
-
-        Returns:
-            CDN image URL or None if player not found
-        """
-        player_id = self.find_player_id(player_name)
-        if player_id is None:
-            return None
-
-        return self.construct_image_url(player_id)
