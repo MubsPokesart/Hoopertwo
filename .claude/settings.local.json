@@ -19,7 +19,13 @@
       "WebFetch(domain:pypi.org)",
       "Bash(poetry run pytest:*)",
       "Bash(python scraper.py:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__list_directory",
+      "Bash(bot)",
+      "Bash(./venv/Scripts/python.exe -m pytest tests/test_scrapers/ -v --tb=line)",
+      "Bash(./venv/Scripts/python.exe:*)",
+      "mcp__filesystem__read_text_file"
     ]
   }
 }
