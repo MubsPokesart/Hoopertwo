@@ -72,7 +72,7 @@ class SpawningCog(commands.Cog):
 
         # Check if should spawn (threshold from server config, default 500)
         # TODO: Get threshold from server config
-        threshold = 500
+        threshold = 5  # TESTING: Lowered from 500 for easy testing
 
         if count >= threshold:
             await self._trigger_spawn(message.channel)

@@ -67,9 +67,20 @@ class HooperTwoBot(commands.Bot):
         await self.add_cog(SpawningCog(self, cache, spawn_manager))
         logger.info("✅ SpawningCog loaded")
 
+        # Log all registered commands
+        logger.info(f"Registered prefix commands: {[cmd.name for cmd in self.commands]}")
+        logger.info(f"Registered slash commands: {[cmd.name for cmd in self.tree.get_commands()]}")
+
+    async def on_message(self, message):
+        """Override to log all messages for debugging."""
+        if not message.author.bot:
+            logger.info(f"Message received: '{message.content}' from {message.author.name}")
+        await self.process_commands(message)
+
     async def on_ready(self):
         """Called when bot successfully connects to Discord."""
         logger.info(f"Logged in as {self.user} (ID: {self.user.id})")
+        logger.info(f"Command prefix: '{self.command_prefix}'")
 
         # DIAGNOSTIC: Detailed guild information
         logger.info("=== DIAGNOSTIC: Guild Connection Status ===")
@@ -88,10 +99,30 @@ class HooperTwoBot(commands.Bot):
 
         # Sync slash commands
         try:
-            synced = await self.tree.sync()
-            logger.info(f"Synced {len(synced)} command(s)")
+            # For testing: sync to guild instantly (global sync takes 1 hour!)
+            if self.guilds:
+                test_guild = self.guilds[0]
+
+                # Clear only guild commands (DON'T clear global - those are our source!)
+                logger.info("Clearing old guild commands...")
+                self.tree.clear_commands(guild=test_guild)
+
+                # Copy global commands to guild
+                self.tree.copy_global_to(guild=test_guild)
+
+                # Sync to guild (instant)
+                synced = await self.tree.sync(guild=test_guild)
+                logger.info(f"✅ Synced {len(synced)} command(s) to guild '{test_guild.name}' (INSTANT)")
+                logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
+            else:
+                # Fallback to global sync (takes up to 1 hour to appear)
+                synced = await self.tree.sync()
+                logger.info(f"Synced {len(synced)} command(s) globally (may take up to 1 hour to appear)")
+                logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
         except Exception as e:
             logger.error(f"Failed to sync commands: {e}")
+            if hasattr(e, 'status') and e.status == 403:
+                logger.error("❌ Missing 'applications.commands' scope! Re-invite bot with proper permissions.")
 
     async def on_guild_join(self, guild):
         """DIAGNOSTIC: Track when bot joins a guild."""
