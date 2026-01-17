@@ -2,6 +2,7 @@
 import pytest
 import json
 from pathlib import Path
+from unittest.mock import Mock
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 
 
@@ -30,9 +31,9 @@ def temp_player_db(tmp_path):
         },
         "estimated": {
             "Test Player": {
-                "player_id": "playertest01",
+                "player_id": "playette01",
                 "adp": 100.0,
-                "url": "https://www.basketball-reference.com/players/p/playertest01.html"
+                "url": "https://www.basketball-reference.com/players/p/playette01.html"
             }
         },
         "needs_verification": []
@@ -48,15 +49,14 @@ def temp_player_db(tmp_path):
 def br_client(temp_player_db):
     """Create Basketball Reference client with test database."""
     return BasketballReferenceClient(
-        player_id_db_path=temp_player_db,
-        rate_limit_per_minute=60  # Fast for testing
+        player_id_db_path=temp_player_db
     )
 
 
 def test_client_initialization(br_client):
-    """Test client initializes with rate limit."""
-    assert br_client.rate_limit_per_minute == 60
+    """Test client initializes correctly."""
     assert br_client.base_url == "https://www.basketball-reference.com"
+    assert br_client.player_id_db_path is not None
 
 
 def test_find_player_id_verified(br_client):
@@ -71,12 +71,18 @@ def test_find_player_id_verified(br_client):
 def test_find_player_id_estimated(br_client):
     """Test finding estimated player ID."""
     player_id = br_client.find_player_id("Test Player")
-    assert player_id == "playertest01"
+    assert player_id == "playette01"
 
 
 def test_find_player_id_not_found(br_client):
-    """Test handling of player not in database."""
+    """Test handling of player not in database - returns generated ID."""
+    # Two-word names will generate an ID using Basketball Reference convention
     player_id = br_client.find_player_id("Nonexistent Player")
+    assert player_id == "playeno01"  # Generated: playe(5) + no(2) + 01
+
+def test_find_player_id_single_name(br_client):
+    """Test that single-word names can't generate an ID."""
+    player_id = br_client.find_player_id("Madonna")
     assert player_id is None
 
 
@@ -89,77 +95,28 @@ def test_construct_player_url(br_client):
     assert url == "https://www.basketball-reference.com/players/l/lopezbr01.html"
 
 
-def test_parse_image_from_html_valid(br_client):
-    """Test parsing image URL from valid HTML."""
-    html = '''
-    <html>
-        <div id="meta">
-            <div class="media-item">
-                <img src="https://www.basketball-reference.com/req/202106291/images/headshots/lopezbr01.jpg" alt="Brook Lopez">
-            </div>
-        </div>
-    </html>
-    '''
+def test_construct_image_url(br_client):
+    """Test constructing direct BR image URLs."""
+    url = br_client.construct_image_url("jordami01")
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg"
 
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url == "https://www.basketball-reference.com/req/202106291/images/headshots/lopezbr01.jpg"
+    url = br_client.construct_image_url("jamesle01")
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jamesle01.jpg"
 
 
-def test_parse_image_from_html_relative_url(br_client):
-    """Test parsing image with relative URL."""
-    html = '''
-    <html>
-        <div id="meta">
-            <div class="media-item">
-                <img src="/req/202106291/images/headshots/jordami01.jpg">
-            </div>
-        </div>
-    </html>
-    '''
-
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url == "https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg"
+def test_get_player_image_url_verified(br_client):
+    """Test getting image URL for verified player (no verification)."""
+    url = br_client.get_player_image_url("Michael Jordan")
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg"
 
 
-def test_parse_image_from_html_protocol_relative(br_client):
-    """Test parsing image with protocol-relative URL."""
-    html = '''
-    <html>
-        <div id="meta">
-            <div class="media-item">
-                <img src="//cdn.ssref.net/req/202106291/images/headshots/jamesle01.jpg">
-            </div>
-        </div>
-    </html>
-    '''
+def test_get_player_image_url_not_found(br_client):
+    """Test getting image URL for player not in database."""
+    url = br_client.get_player_image_url("Unknown Player")
 
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url.startswith("https://")
-    assert "jamesle01.jpg" in img_url
+    assert url is None
 
 
-def test_parse_image_from_html_no_meta(br_client):
-    """Test parsing fails gracefully when meta div missing."""
-    html = '<html><div class="other">No meta here</div></html>'
-
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url is None
-
-
-def test_parse_image_from_html_no_media_item(br_client):
-    """Test parsing fails gracefully when media-item missing."""
-    html = '<html><div id="meta">No media-item here</div></html>'
-
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url is None
-
-
-def test_parse_image_from_html_no_img_tag(br_client):
-    """Test parsing fails gracefully when img tag missing."""
-    html = '<html><div id="meta"><div class="media-item">No img tag</div></div></html>'
-
-    img_url = br_client._parse_image_from_html(html)
-    assert img_url is None
 
 
 def test_database_caching(br_client):
@@ -183,11 +140,3 @@ def test_missing_database_file():
     assert db["estimated"] == {}
 
 
-def test_rate_limiting_basic(br_client):
-    """Test that rate limiting doesn't crash (basic smoke test)."""
-    # This just ensures the rate limiting mechanism doesn't error
-    br_client._enforce_rate_limit()
-    br_client._enforce_rate_limit()
-
-    # Should have recorded 2 request times
-    assert len(br_client.request_times) == 2

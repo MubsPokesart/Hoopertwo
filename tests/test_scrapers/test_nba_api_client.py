@@ -1,21 +1,20 @@
+"""Tests for NBA API client.
+
+DEPRECATED: These tests are skipped as NBA API is no longer used for seeding.
+Preserved as documentation of the original implementation.
+"""
 import pytest
 import time
 from src.scrapers.nba_api_client import NBAApiClient
+
+# Skip all tests in this module - NBA API no longer used for seeding
+pytestmark = pytest.mark.skip(reason="Deprecated - NBA API no longer used for seeding")
 
 
 def test_client_initialization():
     """Test client initializes with rate limit."""
     client = NBAApiClient(rate_limit_per_minute=20)
     assert client.rate_limit_per_minute == 20
-
-
-def test_construct_player_image_url():
-    """Test constructing CDN image URL from player ID."""
-    client = NBAApiClient()
-
-    # NBA CDN format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
-    url = client.construct_image_url(player_id=2544)  # LeBron James
-    assert url == "https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png"
 
 
 def test_find_player_by_name(monkeypatch):
