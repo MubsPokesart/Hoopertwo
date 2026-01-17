@@ -43,45 +43,45 @@ def player_manager(temp_db, test_csv):
 
 def test_calculate_rarity_tier_goat(player_manager):
     """Test rarity calculation for GOAT tier (ADP < 2)."""
-    assert player_manager._calculate_rarity_tier(1.41) == "GOAT"
-    assert player_manager._calculate_rarity_tier(1.90) == "GOAT"
-    assert player_manager._calculate_rarity_tier(1.99) == "GOAT"
+    assert player_manager.calculate_rarity_tier(1.41) == "GOAT"
+    assert player_manager.calculate_rarity_tier(1.90) == "GOAT"
+    assert player_manager.calculate_rarity_tier(1.99) == "GOAT"
 
 
 def test_calculate_rarity_tier_mythic(player_manager):
     """Test rarity calculation for Mythic tier (2 <= ADP < 32)."""
-    assert player_manager._calculate_rarity_tier(2.0) == "Mythic"
-    assert player_manager._calculate_rarity_tier(4.54) == "Mythic"
-    assert player_manager._calculate_rarity_tier(30.31) == "Mythic"
-    assert player_manager._calculate_rarity_tier(31.99) == "Mythic"
+    assert player_manager.calculate_rarity_tier(2.0) == "Mythic"
+    assert player_manager.calculate_rarity_tier(4.54) == "Mythic"
+    assert player_manager.calculate_rarity_tier(30.31) == "Mythic"
+    assert player_manager.calculate_rarity_tier(31.99) == "Mythic"
 
 
 def test_calculate_rarity_tier_legendary(player_manager):
     """Test rarity calculation for Legendary tier (32 <= ADP < 64)."""
-    assert player_manager._calculate_rarity_tier(32.0) == "Legendary"
-    assert player_manager._calculate_rarity_tier(32.06) == "Legendary"
-    assert player_manager._calculate_rarity_tier(63.99) == "Legendary"
+    assert player_manager.calculate_rarity_tier(32.0) == "Legendary"
+    assert player_manager.calculate_rarity_tier(32.06) == "Legendary"
+    assert player_manager.calculate_rarity_tier(63.99) == "Legendary"
 
 
 def test_calculate_rarity_tier_epic(player_manager):
     """Test rarity calculation for Epic tier (64 <= ADP < 128)."""
-    assert player_manager._calculate_rarity_tier(64.0) == "Epic"
-    assert player_manager._calculate_rarity_tier(120.0) == "Epic"
-    assert player_manager._calculate_rarity_tier(127.99) == "Epic"
+    assert player_manager.calculate_rarity_tier(64.0) == "Epic"
+    assert player_manager.calculate_rarity_tier(120.0) == "Epic"
+    assert player_manager.calculate_rarity_tier(127.99) == "Epic"
 
 
 def test_calculate_rarity_tier_rare(player_manager):
     """Test rarity calculation for Rare tier (128 <= ADP < 256)."""
-    assert player_manager._calculate_rarity_tier(128.0) == "Rare"
-    assert player_manager._calculate_rarity_tier(250.0) == "Rare"
-    assert player_manager._calculate_rarity_tier(255.99) == "Rare"
+    assert player_manager.calculate_rarity_tier(128.0) == "Rare"
+    assert player_manager.calculate_rarity_tier(250.0) == "Rare"
+    assert player_manager.calculate_rarity_tier(255.99) == "Rare"
 
 
 def test_calculate_rarity_tier_common(player_manager):
     """Test rarity calculation for Common tier (ADP >= 256 or None)."""
-    assert player_manager._calculate_rarity_tier(256.0) == "Common"
-    assert player_manager._calculate_rarity_tier(1000.0) == "Common"
-    assert player_manager._calculate_rarity_tier(None) == "Common"
+    assert player_manager.calculate_rarity_tier(256.0) == "Common"
+    assert player_manager.calculate_rarity_tier(1000.0) == "Common"
+    assert player_manager.calculate_rarity_tier(None) == "Common"
 
 
 def test_load_adp_board(player_manager):
