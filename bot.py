@@ -51,7 +51,21 @@ class HooperTwoBot(commands.Bot):
     async def setup_hook(self):
         """Called when bot is starting up. Load cogs here."""
         logger.info("Bot setup hook called")
-        # Cogs will be loaded here in future tasks
+
+        # Load SpawningCog (Batch 6)
+        from src.cogs.spawning_cog import SpawningCog
+        from src.coordinators.cache_coordinator import CacheCoordinator
+        from src.managers.spawn_manager import SpawnManager
+        from src.database.repositories.player_repository import PlayerRepository
+
+        # Initialize dependencies
+        cache = CacheCoordinator()
+        player_repo = PlayerRepository(self.db)
+        spawn_manager = SpawnManager(player_repo)
+
+        # Add the cog
+        await self.add_cog(SpawningCog(self, cache, spawn_manager))
+        logger.info("✅ SpawningCog loaded")
 
     async def on_ready(self):
         """Called when bot successfully connects to Discord."""
