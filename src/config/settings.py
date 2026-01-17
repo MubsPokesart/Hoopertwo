@@ -27,6 +27,10 @@ class Settings:
         # Database configuration
         self.database_path = os.getenv("DATABASE_PATH", "data/hooper_two.db")
 
+        # ADP Board Configuration
+        self.adp_csv_path = os.getenv("ADP_CSV_PATH", "data/adp_board.csv")
+        self.adp_players_path = os.getenv("PLAYER_ID_PATH", "data/player_ids.json")
+
         # Image storage
         self.image_cache_dir = os.getenv("IMAGE_CACHE_DIR", "data/images")
 

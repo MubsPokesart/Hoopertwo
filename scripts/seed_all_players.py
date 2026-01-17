@@ -22,6 +22,7 @@ from src.database.repositories.player_repository import PlayerRepository
 from src.config.settings import get_settings
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 from src.scrapers.player_stats_csv_parser import PlayerStatsCSVParser
+from src.managers.player_manager import PlayerManager
 
 # Configure logging
 logging.basicConfig(
@@ -120,18 +121,40 @@ class SkipListManager:
             logger.warning(f"Unknown skip reason: {reason}")
 
 
-def is_on_adp_board(player_name: str, repo: PlayerRepository) -> bool:
+def is_on_adp_board(player_name: str, adp_players_path: str) -> bool:
     """Check if player is on ADP board.
 
     Args:
         player_name: Full player name
-        repo: Player repository instance
+        adp_players_path: Average draft position instance
 
     Returns:
         True if player exists in database with ADP value
     """
-    player = repo.get_player_by_name(player_name)
-    return player is not None and player.get('adp_value') is not None
+
+    with open(adp_players_path, 'r') as file:
+        data = json.load(file)
+        return player_name in data["verified"] or player_name in data["estimated"]
+    return False
+        
+
+def get_adp_object(player_name: str, adp_players_path: str) -> dict:
+    """Get the details on a player on the ADP board
+
+    Args:
+        player_name: Full player name
+        adp_players_path: Average draft position instance
+
+    Returns:
+        Object detailing player_id, url, and adp
+    """
+
+    with open(adp_players_path, 'r') as file:
+        data = json.load(file)
+        if player_name in data["verified"]: return data["verified"][player_name]
+        if player_name in data["estimated"]: return data["estimated"][player_name]
+    
+    return None
 
 
 def seed_all_players():
@@ -148,13 +171,16 @@ def seed_all_players():
     # Initialize Basketball Reference client
     logger.info("Initializing Basketball Reference client...")
     br_client = BasketballReferenceClient(
-        player_id_db_path="data/player_ids.json"
+        player_id_db_path=settings.adp_players_path
     )
 
     # Initialize skip list manager
     skip_list_path = Path("data/skipped_players.json")
     skip_list = SkipListManager(skip_list_path)
     skip_list.load()
+
+    # Populate the database with players on the adp
+    player_manager = PlayerManager(repo, settings.adp_csv_path)
 
     # Parse players from CSV
     logger.info("Parsing player stats from CSV...")
@@ -201,13 +227,32 @@ def seed_all_players():
         logger.info(f"[{idx}/{len(qualified_players)}] Processing {player_name} ({career_minutes:,} minutes)...")
 
         # Check if player is on ADP board
-        on_adp_board = is_on_adp_board(player_name, repo)
+        on_adp_board = is_on_adp_board(player_name, settings.adp_players_path)
 
         # Get image URL from Basketball Reference
         image_url = br_client.get_player_image_url(player_name)
 
+
         # Decision logic
-        if image_url:
+        if on_adp_board and image_url:
+            # On ADP - give it a rarity and adp value
+            try:
+                player_object = get_adp_object(player_name, settings.adp_players_path)
+                repo.create_player(
+                    name=player_name,
+                    adp_value=player_object["adp"],
+                    rarity_tier=player_manager.calculate_rarity_tier(player_object["adp"]),
+                    image_url=image_url,
+                    career_minutes=career_minutes
+                )
+
+                stats['added'] += 1
+                logger.info(f"Added {player_name} ({player_manager.calculate_rarity_tier(player_object["adp"])}) ({career_minutes:,} minutes)")
+
+            except Exception as e:
+                logger.error(f"Error adding {player_name}: {e}")
+        
+        elif image_url:
             # Has image - add to database
             try:
                 repo.create_player(
@@ -223,24 +268,16 @@ def seed_all_players():
             except Exception as e:
                 logger.error(f"Error adding {player_name}: {e}")
 
-        elif on_adp_board:
+        elif on_adp_board and not image_url:
             # ADP board player without image - LOG and store with NULL
             logger.error(f"ADP BOARD PLAYER MISSING IMAGE: {player_name}")
             logger.error(f"   Manual intervention required!")
-
-            # Check if it was an estimated ID
-            player_id_br = br_client.find_player_id(player_name)
-            if player_id_br:
-                db = br_client._load_player_id_database()
-                if player_name in db['estimated']:
-                    logger.warning(f"Estimated player ID failed: {player_name} -> {player_id_br}")
-                    logger.warning(f"   Consider manual verification and moving to 'verified' section")
 
             try:
                 repo.create_player(
                     name=player_name,
                     adp_value=None,  # Will be set by ADP board loader
-                    rarity_tier="Common",
+                    rarity_tier=player_manager.calculate_rarity_tier(player_object["adp"]),
                     image_url=None,  # NULL - needs manual fix
                     career_minutes=career_minutes
                 )
@@ -284,10 +321,7 @@ def seed_all_players():
     logger.info(f"Total players checked: {stats['total_checked']}")
     logger.info(f"Already in database: {stats['already_exists']}")
     logger.info(f"Skipped (cached from previous runs): {stats['skipped_cached']}")
-    logger.info(f"No valid image: {stats['no_image']}")
-    logger.info(f"ADP board players missing images: {stats['adp_missing_image']}")
-    logger.info(f"Successfully added: {stats['added']}")
-    logger.info(f"Total time: {elapsed_time/60:.2f} minutes ({elapsed_time/3600:.2f} hours)")
+    logger.info(f"Total time: {elapsed_time/3600:.2f} hours")
     logger.info("="*60)
 
     if stats['adp_missing_image'] > 0:

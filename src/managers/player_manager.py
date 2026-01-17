@@ -34,7 +34,7 @@ class PlayerManager:
         self.repository = repository
         self.adp_csv_path = adp_csv_path
 
-    def _calculate_rarity_tier(self, adp_value: Optional[float]) -> str:
+    def calculate_rarity_tier(self, adp_value: Optional[float]) -> str:
         """Calculate rarity tier based on ADP value.
 
         Rarity tiers:
@@ -81,7 +81,7 @@ class PlayerManager:
             for row in reader:
                 name = row["Player"].strip()
                 adp_value = float(row["ADP (31-)"])
-                rarity_tier = self._calculate_rarity_tier(adp_value)
+                rarity_tier = self.calculate_rarity_tier(adp_value)
 
                 # Create player (image URL will be added later by scraper)
                 self.repository.create_player(
