@@ -229,6 +229,11 @@
       "player_id": "lopezbr01",
       "adp": 235.95,
       "url": "https://www.basketball-reference.com/players/l/lopezbr01.html"
+    },
+    "JR Smith": {
+      "player_id": "smithjr01",
+      "adp": 303.37,
+      "url": "https://www.basketball-reference.com/players/s/smithjr01.html"
     }
   },
   "estimated": {
@@ -2248,10 +2253,5 @@
       "url": "https://www.basketball-reference.com/players/n/nattca01.html"
     }
   },
-  "needs_verification": [
-    {
-      "name": "JR Smith",
-      "adp": 303.37
-    }
-  ]
+  "needs_verification": []
 }
