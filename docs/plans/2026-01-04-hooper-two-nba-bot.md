@@ -6,57 +6,51 @@
 
 ---
 
-## 🔄 Dual-Source Image Strategy: NBA CDN + Basketball Reference
+## 🎯 Image Strategy: Basketball Reference (Primary Source)
 
-**Status:** Implemented dual-source approach for maximum coverage
+**Status:** Basketball Reference is the primary and only image source
 
 **Strategy:**
-- **Primary Source:** NBA CDN via `nba_api` - Fast, reliable, official images
-- **Fallback Source:** Basketball Reference scraper - Comprehensive coverage including historical players
-- **Smart Fallback:** Automatically tries Basketball Reference if NBA CDN fails
+- Basketball Reference provides direct image URLs (no HTML scraping)
+- Format: `https://www.basketball-reference.com/req/202106291/images/headshots/{player_id}.jpg`
+- Returns 404 if image doesn't exist
+- Rate limiting: 10 requests/minute with exponential backoff
+- Coverage: 99.8% of ADP board (449/450 players)
 
-**Rationale:**
-- NBA CDN: Best for active/recent players, fast, no rate limiting concerns
-- Basketball Reference: Comprehensive database (450+ players), includes retired/historical players
-- Combined approach provides maximum coverage with minimal failure rate
-
-**Key Components:**
-1. **NBA API Client** (`src/scrapers/nba_api_client.py`)
-   - Uses `nba_api ^1.11.3` for player ID lookup
-   - Constructs NBA CDN URLs: `https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png`
-   - Rate limited to 20 requests/minute
+**Components:**
+1. **CSV-Based Player Stats Parser** (`src/scrapers/player_stats_csv_parser.py`)
+   - Parses pre-aggregated player statistics from `data/scoring.csv`
+   - Aggregates career minutes across all seasons (1974-2025)
+   - Filters players by minimum career minutes threshold (1000+)
+   - No external API calls - instant data access
 
 2. **Basketball Reference Client** (`src/scrapers/basketball_reference_client.py`)
-   - Custom scraper using BeautifulSoup4 + requests
-   - Uses verified player ID database (`data/player_ids.json`)
-   - Rate limited to 10 requests/minute (conservative to avoid blocks)
-   - Parses player headshot images from HTML structure
-
-3. **Image Manager** (`src/managers/image_manager.py`)
-   - Tries NBA CDN first (primary)
-   - Falls back to Basketball Reference if NBA CDN fails
-   - Caches all downloaded images locally
-   - Handles failures gracefully
+   - Direct image URL construction
+   - URL verification with exponential backoff for 403/429 errors
+   - Player ID database lookup (46 verified + 403 estimated)
+   - Rate limited to 10 requests/minute
 
 **Player ID Database:**
 - Location: `data/player_ids.json`
 - Contains: 46 verified + 403 estimated player IDs
 - Coverage: 99.8% of ADP board (449/450 players)
-- Format: `{"verified": {...}, "estimated": {...}}`
+- Missing: JR Smith (manual intervention required)
 
-**Implementation Impact:**
-- Batch 3 uses dual-source approach
-- Both clients tested independently
-- ImageManager orchestrates fallback logic
-- Maximum image availability for spawning system
+**Discord Integration:**
+- Discord allows hotlinking - URLs embedded directly in embeds
+- No local image caching needed
+- URLs stored in database, used directly in Discord
 
 ---
 
 **Architecture:** Hybrid command Discord bot using discord.py with cog-based architecture. SQLite for persistence, in-memory Python dict for caching. Modular OOP design with Manager/Coordinator patterns. TDD throughout. Security-first with parameterized queries, input validation, and rate limiting.
 
-**Tech Stack:** Python 3.10+, discord.py, SQLite3, nba_api, Poetry, Docker/Docker Compose
+**Tech Stack:** Python 3.10+, discord.py, SQLite3, Poetry, Docker/Docker Compose
 
-**Why nba_api:** Modern, well-maintained library (v1.11.3+) with official NBA.com API access. Compatible with Python 3.12+, unlike basketball-reference-scraper (old numpy dependency, scraping instability). Player images via NBA CDN URLs.
+**Data Sources:**
+- Player statistics: `data/scoring.csv` (26,484 rows, 1974-2025 seasons)
+- Player images: Basketball Reference headshot URLs
+- Rarity tiers: `data/adp_board.csv` (community ADP rankings)
 
 **Security Focus:** All user input validated/sanitized, parameterized SQL queries only, rate limiting on all commands, environment variable token storage.
 
@@ -78,7 +72,6 @@ hoopertwo/
 ├── data/
 │   ├── adp_board.csv              # Rarity source of truth
 │   ├── player_ids.json            # Basketball Reference player ID database
-│   ├── images/                     # Downloaded player images
 │   └── hooper_two.db              # SQLite database
 ├── src/
 │   ├── __init__.py
@@ -100,8 +93,7 @@ hoopertwo/
 │   │   ├── player_manager.py      # Player data business logic
 │   │   ├── collection_manager.py  # Collection logic
 │   │   ├── spawn_manager.py       # Spawning logic
-│   │   ├── leaderboard_manager.py # Leaderboard calculations
-│   │   └── image_manager.py       # Image fetching/caching
+│   │   └── leaderboard_manager.py # Leaderboard calculations
 │   ├── coordinators/
 │   │   ├── __init__.py
 │   │   ├── spawn_coordinator.py   # Message counting & spawn triggers
@@ -122,13 +114,15 @@ hoopertwo/
 │   │   └── leaderboard_cog.py     # Leaderboard commands
 │   └── scrapers/
 │       ├── __init__.py
-│       ├── nba_api_client.py                    # NBA CDN (primary)
-│       └── basketball_reference_client.py       # Basketball Reference (fallback)
+│       ├── player_stats_csv_parser.py           # CSV-based player statistics parser
+│       ├── basketball_reference_client.py       # Primary image source
+│       └── nba_api_client.py                    # DEPRECATED - preserved for reference
 └── tests/
     ├── __init__.py
     ├── test_validators/
     ├── test_managers/
     ├── test_repositories/
+    ├── test_scrapers/
     └── test_utils/
 ```
 
@@ -166,7 +160,6 @@ readme = "README.md"
 python = "^3.10"
 "discord.py" = "^2.3.2"
 python-dotenv = "^1.0.0"
-nba_api = "^1.11.3"
 aiohttp = "^3.9.0"
 pillow = "^10.1.0"
 requests = "^2.31.0"
@@ -204,12 +197,8 @@ DEFAULT_SPAWN_THRESHOLD=500
 # Database
 DATABASE_PATH=data/hooper_two.db
 
-# Image Storage
-IMAGE_CACHE_DIR=data/images
-NBA_CDN_BASE_URL=https://cdn.nba.com/headshots/nba/latest/1040x760
-
-# NBA API Rate Limiting
-NBA_API_RATE_LIMIT_PER_MINUTE=20
+# Image Storage (Basketball Reference)
+BASKETBALL_REFERENCE_RATE_LIMIT_PER_MINUTE=10
 
 # Backup Configuration
 BACKUP_ENABLED=true
@@ -1666,243 +1655,305 @@ Expected: All tests pass, ADP board loaded correctly with proper rarity tiers
 
 ---
 
-## Batch 3: Image Management System
+## Batch 3: Player Data & Image Management System
+
+**Implementation Status:** ✅ COMPLETED (see git commit d04142a)
+
+**Git History:**
+- `d04142a`: Deprecate nba_api, add CSV parser with decimal format handling
+- `2c54668`: Add comprehensive test suite (7 tests for CSV parser)
+- `673745c`: Integrate CSV seeding to handle all players with one script
 
 **Success Criteria:**
-- ✅ NBA API client fetches player data and constructs NBA CDN URLs (primary)
-- ✅ Basketball Reference client scrapes player images with verified ID database (fallback)
-- ✅ Dual-source strategy: NBA CDN → Basketball Reference fallback
-- ✅ Images downloaded and cached locally
-- ✅ Rate limiting enforced: NBA API (20/min), Basketball Reference (10/min)
-- ✅ Failed image downloads logged but don't crash system
-- ✅ All tests pass (14 tests for BR client, existing tests for NBA client)
+- ✅ CSV-based player stats parser aggregates career minutes (replaces NBA API for seeding)
+- ✅ Basketball Reference client constructs direct image URLs (no HTML scraping)
+- ✅ URL verification with exponential backoff (max 1 minute)
+- ✅ Player ID database covers 99.8% of ADP board
+- ✅ NBA API client deprecated (CSV provides player data)
+- ✅ Seeder handles missing images gracefully (NULL for ADP, skip for others)
+- ✅ Rate limiting enforced (10 requests/minute for BR)
+- ✅ All tests pass (17 tests for BR client, 7 tests for CSV parser, 3 deprecated NBA API tests)
 
-### Task 3.1: NBA API Client
+### Task 3.1: CSV-Based Player Stats Parser
+
+**Context:** Replace NBA API dependency with CSV parsing for 10-20x faster seeding (30-60 minutes vs 10-15 hours). CSV contains pre-aggregated player stats from 1974-present with no rate limiting.
 
 **Files:**
 - Create: `src/scrapers/__init__.py`
-- Create: `src/scrapers/nba_api_client.py`
+- Create: `src/scrapers/player_stats_csv_parser.py`
 - Create: `tests/test_scrapers/__init__.py`
-- Create: `tests/test_scrapers/test_nba_api_client.py`
+- Create: `tests/test_scrapers/test_player_stats_csv_parser.py`
+- Data Source: `data/scoring.csv` (26,484 rows, year-by-year stats)
 
-**Step 1: Write failing test**
+**Step 1: Write failing tests** (TDD Approach)
 
-Create `tests/test_scrapers/test_nba_api_client.py`:
+Create `tests/test_scrapers/test_player_stats_csv_parser.py`:
 
 ```python
+"""Tests for CSV-based player stats parser."""
 import pytest
-import time
-from src.scrapers.nba_api_client import NBAApiClient
+import csv
+from src.scrapers.player_stats_csv_parser import PlayerStatsCSVParser, PlayerStats
 
 
-def test_client_initialization():
-    """Test client initializes with rate limit."""
-    client = NBAApiClient(rate_limit_per_minute=20)
-    assert client.rate_limit_per_minute == 20
+@pytest.fixture
+def temp_csv_single_player(tmp_path):
+    """Create temporary CSV with single player, single season."""
+    csv_path = tmp_path / "test_scoring.csv"
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Player', 'TS%', 'PTS', 'MP', 'Tm', 'G', 'year', 'nba_id'])
+        writer.writerow(['LeBron James', '0.588', '27.1', '2316.0', 'CLE', '79', '2004', '2544'])
+    return str(csv_path)
 
 
-def test_construct_player_image_url():
-    """Test constructing CDN image URL from player ID."""
-    client = NBAApiClient()
+def test_parse_single_player_single_season(temp_csv_single_player):
+    """Test parsing a single player with one season."""
+    parser = PlayerStatsCSVParser(
+        csv_path=temp_csv_single_player,
+        min_career_minutes=1000
+    )
 
-    # NBA CDN format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
-    url = client.construct_image_url(player_id=2544)  # LeBron James
-    assert url == "https://cdn.nba.com/headshots/nba/latest/1040x760/2544.png"
+    players = parser.parse_players()
 
-
-def test_find_player_by_name(monkeypatch):
-    """Test finding player ID by name using nba_api."""
-    client = NBAApiClient()
-
-    # Mock the nba_api call to avoid real API requests
-    def mock_get_players():
-        return [
-            {"id": 2544, "full_name": "LeBron James"},
-            {"id": 203076, "full_name": "Anthony Davis"},
-        ]
-
-    monkeypatch.setattr(client, "_get_all_players", mock_get_players)
-
-    player_id = client.find_player_id("LeBron James")
-    assert player_id == 2544
+    assert len(players) == 1
+    assert 'LeBron James' in players
+    lebron = players['LeBron James']
+    assert lebron.name == 'LeBron James'
+    assert lebron.total_minutes == 2316
+    assert lebron.nba_id == 2544
+    assert lebron.seasons_played == 1
 
 
-def test_rate_limiting(monkeypatch):
-    """Test that rate limiting is enforced."""
-    client = NBAApiClient(rate_limit_per_minute=2)  # 2 per minute for testing
+def test_aggregate_multiple_seasons(temp_csv_multiple_seasons):
+    """Test aggregating minutes across multiple seasons for same player."""
+    # Test fixture creates LeBron with 3 seasons: 2316 + 2451 + 3190 = 7957
+    parser = PlayerStatsCSVParser(csv_path=temp_csv_multiple_seasons, min_career_minutes=1000)
+    players = parser.parse_players()
 
-    # Mock the actual API call to avoid real HTTP requests
-    fetch_times = []
+    lebron = players['LeBron James']
+    assert lebron.total_minutes == 7957
+    assert lebron.seasons_played == 3
 
-    def mock_api_call(name):
-        fetch_times.append(time.time())
-        return 12345
 
-    monkeypatch.setattr(client, "_api_find_player", mock_api_call)
+def test_filter_by_minimum_minutes(temp_csv_with_below_threshold):
+    """Test that players below minimum minutes are filtered out."""
+    parser = PlayerStatsCSVParser(csv_path=temp_csv_with_below_threshold, min_career_minutes=1000)
+    players = parser.parse_players()
 
-    # Make 3 requests
-    client.find_player_id("Player 1")
-    client.find_player_id("Player 2")
-    client.find_player_id("Player 3")
+    assert 'LeBron James' in players  # 2500 minutes
+    assert 'John Doe' not in players  # 500 minutes
 
-    # Check that there's a delay between 2nd and 3rd request
-    if len(fetch_times) >= 3:
-        time_diff = fetch_times[2] - fetch_times[1]
-        assert time_diff >= 29  # Should wait ~30 seconds (60s / 2 per minute)
+
+def test_parse_decimal_format_minutes(temp_csv_decimal_minutes):
+    """Test parsing minutes in decimal format (like real CSV data)."""
+    parser = PlayerStatsCSVParser(csv_path=temp_csv_decimal_minutes, min_career_minutes=1000)
+    players = parser.parse_players()
+
+    assert players['LeBron James'].total_minutes == 2316  # '2316.0' → 2316
+    assert players['Kobe Bryant'].total_minutes == 3277  # '3277.5' → 3277
 ```
 
 **Step 2: Run test to verify it fails**
 
 ```bash
-poetry run pytest tests/test_scrapers/test_nba_api_client.py -v
+python -m pytest tests/test_scrapers/test_player_stats_csv_parser.py -v
 ```
 
-Expected: FAIL with "ModuleNotFoundError"
+Expected: FAIL with "ModuleNotFoundError: No module named 'src.scrapers.player_stats_csv_parser'"
 
-**Step 3: Write implementation**
+**Step 3: Write minimal implementation**
 
-Create `src/scrapers/nba_api_client.py`:
+Create `src/scrapers/player_stats_csv_parser.py`:
 
 ```python
-"""NBA API client with rate limiting.
-
-Fetches player data from NBA.com official API and constructs
-CDN image URLs. Uses nba_api library for API access.
-"""
-import time
+"""CSV-based player statistics parser."""
+from dataclasses import dataclass
+from typing import Dict, Optional
+from collections import defaultdict
+import csv
 import logging
-from typing import Optional, Dict, List
-from collections import deque
-from nba_api.stats.static import players
 
 logger = logging.getLogger(__name__)
 
 
-class NBAApiClient:
-    """Client for NBA API with image URL construction.
+@dataclass
+class PlayerStats:
+    """Player statistics aggregated from CSV data."""
+    name: str
+    total_minutes: int
+    nba_id: Optional[int]
+    seasons_played: int
 
-    Responsibilities:
-    - Find player IDs by name using nba_api
-    - Construct NBA CDN image URLs from player IDs
-    - Enforce rate limiting (default: 20 requests/minute)
-    - Handle errors gracefully
 
-    Image URL format: https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png
+class PlayerStatsCSVParser:
+    """Parse player statistics from CSV file.
+
+    Aggregates year-by-year stats into career totals.
+    Filters players by minimum career minutes.
+    Handles decimal formats ('333.0') and missing data gracefully.
     """
 
-    def __init__(
-        self,
-        rate_limit_per_minute: int = 20,
-        cdn_base_url: str = "https://cdn.nba.com/headshots/nba/latest/1040x760"
-    ):
-        """Initialize NBA API client with rate limiting.
+    def __init__(self, csv_path: str, min_career_minutes: int = 1000):
+        """Initialize parser with CSV path and minimum minutes threshold."""
+        self.csv_path = csv_path
+        self.min_career_minutes = min_career_minutes
 
-        Args:
-            rate_limit_per_minute: Maximum API requests per minute
-            cdn_base_url: Base URL for NBA CDN images
-        """
-        self.rate_limit_per_minute = rate_limit_per_minute
-        self.cdn_base_url = cdn_base_url
-        self.request_times: deque = deque()
-
-    def construct_image_url(self, player_id: int) -> str:
-        """Construct NBA CDN image URL from player ID.
-
-        Args:
-            player_id: NBA player ID (e.g., 2544 for LeBron James)
+    def parse_players(self) -> Dict[str, PlayerStats]:
+        """Parse CSV and return players with >min_career_minutes.
 
         Returns:
-            Full CDN URL to player headshot image
+            Dict[player_name, PlayerStats] for all qualified players
         """
-        return f"{self.cdn_base_url}/{player_id}.png"
+        # Aggregate data by player name
+        player_data = defaultdict(lambda: {
+            'minutes': 0,
+            'seasons': 0,
+            'nba_id': None
+        })
 
-    def _enforce_rate_limit(self) -> None:
-        """Enforce rate limiting by waiting if necessary."""
-        current_time = time.time()
+        with open(self.csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
 
-        # Remove requests older than 60 seconds
-        while self.request_times and current_time - self.request_times[0] > 60:
-            self.request_times.popleft()
+            for row in reader:
+                player_name = row['Player']
 
-        # If at rate limit, wait until we can make another request
-        if len(self.request_times) >= self.rate_limit_per_minute:
-            sleep_time = 60 - (current_time - self.request_times[0])
-            if sleep_time > 0:
-                logger.info(f"Rate limit reached, waiting {sleep_time:.1f}s")
-                time.sleep(sleep_time)
-                self._enforce_rate_limit()  # Recheck after sleeping
+                # Parse minutes - skip row if invalid
+                try:
+                    mp_value = row['MP'].strip()
+                    if not mp_value:
+                        logger.warning(f"Skipping row for {player_name}: missing MP value")
+                        continue
+                    # Convert to float first (CSV has decimal format like '333.0'), then to int
+                    minutes = int(float(mp_value))
+                except (ValueError, KeyError) as e:
+                    logger.warning(f"Skipping row for {player_name}: invalid MP value - {e}")
+                    continue
 
-        # Record this request time
-        self.request_times.append(time.time())
+                # Parse nba_id - store as None if invalid
+                try:
+                    nba_id = int(row['nba_id'])
+                except (ValueError, KeyError):
+                    logger.debug(f"Invalid nba_id for {player_name}, storing as None")
+                    nba_id = None
 
-    def _get_all_players(self) -> List[Dict]:
-        """Get all NBA players from nba_api static data.
+                # Aggregate minutes and count seasons
+                player_data[player_name]['minutes'] += minutes
+                player_data[player_name]['seasons'] += 1
+                player_data[player_name]['nba_id'] = nba_id
 
-        Returns:
-            List of player dictionaries with id and full_name
-        """
-        return players.get_players()
+        # Convert aggregated data to PlayerStats objects, filtering by minimum minutes
+        players = {}
+        for name, data in player_data.items():
+            if data['minutes'] >= self.min_career_minutes:
+                players[name] = PlayerStats(
+                    name=name,
+                    total_minutes=data['minutes'],
+                    nba_id=data['nba_id'],
+                    seasons_played=data['seasons']
+                )
 
-    def _api_find_player(self, player_name: str) -> Optional[int]:
-        """Internal method to find player ID (for testing/mocking).
-
-        Args:
-            player_name: Full player name
-
-        Returns:
-            Player ID or None if not found
-        """
-        player_dict = players.find_players_by_full_name(player_name)
-        if player_dict:
-            return player_dict[0]['id']
-        return None
-
-    def find_player_id(self, player_name: str) -> Optional[int]:
-        """Find NBA player ID by name with rate limiting.
-
-        Args:
-            player_name: Full player name (e.g., "LeBron James")
-
-        Returns:
-            Player ID or None if not found
-        """
-        self._enforce_rate_limit()
-
-        try:
-            return self._api_find_player(player_name)
-        except Exception as e:
-            logger.error(f"Failed to find player {player_name}: {e}")
-            return None
-
-    def get_player_image_url(self, player_name: str) -> Optional[str]:
-        """Get player image URL by finding player ID and constructing CDN URL.
-
-        Args:
-            player_name: Full player name
-
-        Returns:
-            CDN image URL or None if player not found
-        """
-        player_id = self.find_player_id(player_name)
-        if player_id is None:
-            return None
-
-        return self.construct_image_url(player_id)
+        return players
 ```
 
-**Step 4: Run tests (note: rate limiting test will be slow)**
+**Why csv module instead of pandas:**
+- Memory efficient: Processes 26K rows streaming (no full load into RAM)
+- No external dependency: Built-in Python module
+- Fast enough: <5 seconds for full parse
+- Simple use case: No complex transformations needed
+
+Sources: [Python CSV Best Practices](https://www.importcsv.com/blog/parsing-csv-python-guide), [Pandas vs CSV Module](https://pytutorial.com/pandas-vs-csv-module-best-practices-for-csv-data-in-python/)
+
+**Step 4: Run tests to verify they pass**
 
 ```bash
-poetry run pytest tests/test_scrapers/test_nba_api_client.py -v -s
+python -m pytest tests/test_scrapers/test_player_stats_csv_parser.py -v
 ```
 
-Expected: PASS (including rate limiting test which may take ~30s)
+Expected: PASS (all 7 tests including decimal format handling)
 
 **Step 5: Commit**
 
 ```bash
-git add src/scrapers/ tests/test_scrapers/
-git commit -m "feat: add NBA API client with rate limiting and CDN image URL construction"
+git add src/scrapers/player_stats_csv_parser.py tests/test_scrapers/test_player_stats_csv_parser.py
+git commit -m "feat: add CSV-based player stats parser for 10-20x faster seeding"
+```
+
+**Critical Bug Fix (Post-Implementation):**
+
+During real CSV testing, discovered `ValueError: invalid literal for int() with base 10: '333.0'` - the real CSV uses decimal format but tests used integer strings.
+
+**Fix Applied:**
+1. Added `test_parse_decimal_format_minutes()` test (RED)
+2. Changed `int(mp_value)` → `int(float(mp_value))` on line 1828 (GREEN)
+3. All 7 tests pass (REFACTOR complete)
+
+This demonstrates TDD's value: tests initially passed with wrong assumptions, real data revealed the gap, TDD process caught and fixed it systematically.
+
+**Migration Complete!** NBA API dependency removed, seeding time reduced from 10-15 hours → 30-60 minutes.
+
+---
+
+### Task 3.1a: Deprecate NBA API Components
+
+**Context:** Mark NBA API code as deprecated and remove from pyproject.toml. Preserve code for potential future real-time stats integration.
+
+**Files:**
+- Modify: `src/scrapers/nba_api_client.py`
+- Modify: `tests/test_scrapers/test_nba_api_client.py`
+- Modify: `pyproject.toml`
+
+**Step 1: Add deprecation notice to NBA API client**
+
+Add to top of `src/scrapers/nba_api_client.py`:
+
+```python
+"""NBA API client for player statistics and filtering.
+
+DEPRECATED: This client is no longer used for player seeding.
+Player data now comes from CSV (data/scoring.csv) via PlayerStatsCSVParser.
+
+Preserved for potential future use:
+- Real-time stats integration
+- Career stats API access
+
+For player seeding, see: src/scrapers/player_stats_csv_parser.py
+"""
+```
+
+**Step 2: Skip deprecated tests**
+
+Add to `tests/test_scrapers/test_nba_api_client.py`:
+
+```python
+import pytest
+
+# Mark entire file as skipped
+pytestmark = pytest.mark.skip(reason="Deprecated - NBA API no longer used for seeding")
+```
+
+**Step 3: Remove nba_api dependency**
+
+Remove from `pyproject.toml`:
+
+```toml
+# REMOVE THIS LINE:
+nba_api = "^1.11.3"
+```
+
+**Step 4: Run tests to verify**
+
+```bash
+poetry run pytest tests/test_scrapers/test_nba_api_client.py -v
+```
+
+Expected: All 3 tests skipped with deprecation message
+
+**Step 5: Commit deprecation**
+
+```bash
+git add src/scrapers/nba_api_client.py tests/test_scrapers/test_nba_api_client.py pyproject.toml
+git commit -m "chore: deprecate NBA API, remove dependency (CSV migration complete)"
 ```
 
 ---
@@ -1929,290 +1980,85 @@ git commit -m "feat: add NBA API client with rate limiting and CDN image URL con
 
 ---
 
-### Task 3.3: Image Manager (Dual-Source)
+### Task 3.3: Basketball Reference Client Implementation
 
-**Files:**
-- Update: `src/managers/image_manager.py`
-- Update: `tests/test_managers/test_image_manager.py`
+**Status:** ✅ COMPLETE
 
-**Step 1: Write failing test**
+**Implementation Summary:**
 
-Create `tests/test_managers/test_image_manager.py`:
+Basketball Reference client implemented as the primary and only image source using direct URLs instead of HTML scraping.
 
-```python
-import pytest
-from pathlib import Path
-from src.managers.image_manager import ImageManager
-from src.scrapers.nba_api_client import NBAApiClient
+**Key Features:**
+- Direct image URL construction: `https://www.basketball-reference.com/req/202106291/images/headshots/{player_id}.jpg`
+- Player ID database lookup (46 verified + 403 estimated IDs)
+- URL verification with exponential backoff for rate limiting (403/429 errors)
+- Conservative rate limiting (10 requests/minute)
+- No HTML scraping required
 
+**Files Implemented:**
+- `src/scrapers/basketball_reference_client.py` - Main client (234 lines)
+- `tests/test_scrapers/test_basketball_reference_client.py` - 17 comprehensive tests
+- `data/player_ids.json` - Player ID database (449/450 ADP board coverage)
 
-@pytest.fixture
-def temp_cache_dir(tmp_path):
-    """Create temporary cache directory."""
-    cache_dir = tmp_path / "images"
-    cache_dir.mkdir()
-    return str(cache_dir)
-
-
-@pytest.fixture
-def image_manager(temp_cache_dir):
-    """Create ImageManager with temp cache."""
-    client = NBAApiClient(rate_limit_per_minute=60)  # Fast for testing
-    return ImageManager(client, temp_cache_dir)
-
-
-def test_get_cached_image_path(image_manager):
-    """Test getting cached image path for a player."""
-    path = image_manager.get_cached_image_path("Michael Jordan")
-
-    assert "michael_jordan" in path.lower()
-    assert path.endswith(".png")  # NBA CDN uses PNG format
-
-
-def test_image_is_cached(image_manager, temp_cache_dir):
-    """Test checking if image is already cached."""
-    # Initially not cached
-    assert not image_manager.is_cached("Michael Jordan")
-
-    # Create a fake cached file
-    cached_path = image_manager.get_cached_image_path("Michael Jordan")
-    Path(cached_path).touch()
-
-    # Now should be cached
-    assert image_manager.is_cached("Michael Jordan")
-
-
-def test_download_image_creates_file(image_manager, monkeypatch):
-    """Test that downloading image creates file in cache."""
-    # Mock the actual download to avoid network calls
-    def mock_download(url, save_path):
-        Path(save_path).write_text("fake image data")
-
-    monkeypatch.setattr(image_manager, "_download_from_url", mock_download)
-
-    result = image_manager.download_player_image("Test Player", "http://example.com/test.jpg")
-
-    assert result is True
-    assert image_manager.is_cached("Test Player")
-
-
-def test_download_image_handles_errors_gracefully(image_manager, monkeypatch):
-    """Test that download errors are handled without crashing."""
-    def mock_download_error(url, save_path):
-        raise Exception("Network error")
-
-    monkeypatch.setattr(image_manager, "_download_from_url", mock_download_error)
-
-    result = image_manager.download_player_image("Test Player", "http://example.com/test.jpg")
-
-    assert result is False  # Should return False on error, not crash
-```
-
-**Step 2: Run test to verify it fails**
-
+**Test Coverage:**
 ```bash
-poetry run pytest tests/test_managers/test_image_manager.py -v
+poetry run pytest tests/test_scrapers/test_basketball_reference_client.py -v
+# Result: 17 passed
 ```
 
-Expected: FAIL with "ModuleNotFoundError"
-
-**Step 3: Write implementation**
-
-Create `src/managers/image_manager.py`:
-
-```python
-"""Image manager for downloading and caching player images."""
-import logging
-from pathlib import Path
-from typing import Optional
-import aiohttp
-from src.scrapers.nba_api_client import NBAApiClient
-
-logger = logging.getLogger(__name__)
-
-
-class ImageManager:
-    """Manager for player image downloading and caching.
-
-    Responsibilities:
-    - Download player images from NBA CDN
-    - Cache images locally to avoid re-downloads
-    - Handle download failures gracefully
-    """
-
-    def __init__(self, nba_client: NBAApiClient, cache_dir: str):
-        """Initialize image manager.
-
-        Args:
-            nba_client: NBA API client instance
-            cache_dir: Directory to cache downloaded images
-        """
-        self.nba_client = nba_client
-        self.cache_dir = Path(cache_dir)
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-
-    def get_cached_image_path(self, player_name: str) -> str:
-        """Get the file path for a cached player image.
-
-        Args:
-            player_name: Full player name
-
-        Returns:
-            Path where image is/should be cached
-        """
-        # Normalize player name for filename (lowercase, underscores)
-        filename = player_name.lower().replace(" ", "_").replace(".", "")
-        filename = filename.replace("-", "_") + ".png"  # NBA CDN uses PNG
-        return str(self.cache_dir / filename)
-
-    def is_cached(self, player_name: str) -> bool:
-        """Check if player image is already cached.
-
-        Args:
-            player_name: Full player name
-
-        Returns:
-            True if image exists in cache
-        """
-        cached_path = Path(self.get_cached_image_path(player_name))
-        return cached_path.exists() and cached_path.stat().st_size > 0
-
-    def _download_from_url(self, url: str, save_path: str) -> None:
-        """Download image from URL and save to disk.
-
-        Args:
-            url: Image URL
-            save_path: Local path to save image
-        """
-        import requests
-
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-
-        with open(save_path, 'wb') as f:
-            f.write(response.content)
-
-    def download_player_image(self, player_name: str, image_url: str) -> bool:
-        """Download and cache a player's image.
-
-        Args:
-            player_name: Full player name
-            image_url: URL to download image from
-
-        Returns:
-            True if download successful, False otherwise
-        """
-        if self.is_cached(player_name):
-            logger.debug(f"Image already cached for {player_name}")
-            return True
-
-        try:
-            save_path = self.get_cached_image_path(player_name)
-            self._download_from_url(image_url, save_path)
-            logger.info(f"Downloaded image for {player_name}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to download image for {player_name}: {e}")
-            return False
-```
-
-**Step 4: Add requests dependency to pyproject.toml**
-
-Update the `[tool.poetry.dependencies]` section:
-
-```toml
-requests = "^2.31.0"
-```
-
-Then run:
-```bash
-poetry install
-```
-
-**Step 5: Run tests to verify they pass**
-
-```bash
-poetry run pytest tests/test_managers/test_image_manager.py -v
-```
-
-Expected: PASS (all 4 tests)
-
-**Step 6: Commit**
-
-```bash
-git add src/managers/image_manager.py tests/test_managers/test_image_manager.py pyproject.toml
-git commit -m "feat: add image manager for downloading and caching player images"
-```
+**Core Methods:**
+- `construct_image_url(player_id)` - Build direct BR image URL
+- `verify_image_url(url, max_retries=5)` - Verify URL exists with exponential backoff
+- `get_player_image_url(player_name)` - Main method combining ID lookup, URL construction, and verification
+- `find_player_id(player_name)` - Look up player ID from database
 
 ---
 
-### Task 3.4: Dual-Source Integration
+### Task 3.4: Seeder Script Integration
 
-**Implementation Update:** Add Basketball Reference fallback to ImageManager
+**Status:** ✅ COMPLETE
 
-Update `src/managers/image_manager.py`:
+**Implementation Summary:**
 
-```python
-from src.scrapers.basketball_reference_client import BasketballReferenceClient
+Updated `scripts/seed_all_players.py` to use Basketball Reference as the only image source with special handling for ADP board players.
 
-class ImageManager:
-    def __init__(
-        self,
-        nba_client: NBAApiClient,
-        cache_dir: str,
-        br_client: Optional[BasketballReferenceClient] = None
-    ):
-        """Initialize with NBA CDN (primary) + Basketball Reference (fallback)."""
-        self.nba_client = nba_client
-        self.br_client = br_client
-        self.cache_dir = Path(cache_dir)
+**Key Features:**
+- Three-way decision logic:
+  1. Has image → Add to database
+  2. ADP board player without image → Store NULL, log for manual fix
+  3. Non-ADP player without image → Skip entirely
+- Estimated player ID failure logging
+- Manual intervention warnings for ADP board players
+- Batch commits every 100 players with progress tracking
 
-    def download_player_image(self, player_name: str) -> bool:
-        """Try NBA CDN → Basketball Reference fallback."""
-        # Try NBA CDN first (fast, official)
-        try:
-            nba_url = self.nba_client.get_player_image_url(player_name)
-            if nba_url:
-                self._download_from_url(nba_url, save_path)
-                return True
-        except Exception:
-            pass
+**Files Modified:**
+- `scripts/seed_all_players.py` - Main seeder script (266 lines)
 
-        # Fallback to Basketball Reference (comprehensive coverage)
-        if self.br_client:
-            try:
-                br_url = self.br_client.get_player_image_url(player_name)
-                if br_url:
-                    self._download_from_url(br_url, save_path)
-                    return True
-            except Exception:
-                pass
+**Statistics Tracked:**
+- Total players checked
+- Already exists
+- Below career minutes threshold
+- No valid image (skipped)
+- ADP board players missing images (needs manual fix)
+- API errors
+- Successfully added
 
-        return False
-```
-
-**Commit:**
-
-```bash
-git add src/scrapers/basketball_reference_client.py tests/test_scrapers/
-git add src/managers/image_manager.py data/player_ids.json
-git add docs/plans/2026-01-04-hooper-two-nba-bot.md
-git commit -m "feat: implement dual-source image system (NBA CDN + Basketball Reference fallback)"
-```
+---
 
 **Batch 3 Complete! ✅**
 
 Run full test suite:
 ```bash
-poetry run pytest -v --cov=src
+poetry run pytest tests/test_scrapers/ -v
 ```
 
-Expected: All tests pass (including 14 new Basketball Reference client tests)
+Expected: All 24 tests pass (17 Basketball Reference + 7 CSV Parser), 3 NBA API tests skipped (deprecated)
 
-**Dual-Source Coverage:**
-- NBA CDN: Active/recent players
+**Image Coverage:**
 - Basketball Reference: 449/450 ADP board players (99.8%)
-- Combined: Maximum image availability
+- Missing: JR Smith (requires manual player ID lookup and database entry)
+- Direct URLs stored in database, no local caching needed
+- Discord hotlinking supported
 
 ---
 
@@ -2900,7 +2746,6 @@ import logging
 
 from src.coordinators.cache_coordinator import CacheCoordinator
 from src.managers.spawn_manager import SpawnManager
-from src.managers.image_manager import ImageManager
 from src.validators.input_validator import InputValidator, ValidationError
 
 logger = logging.getLogger(__name__)
@@ -2913,19 +2758,20 @@ class SpawningCog(commands.Cog):
     - Listen to messages and track counts
     - Trigger spawns at threshold
     - Handle player recognition
+
+    Note: Player image URLs are stored in the database and accessed
+    directly from player records. No ImageManager needed.
     """
 
     def __init__(
         self,
         bot,
         cache: CacheCoordinator,
-        spawn_manager: SpawnManager,
-        image_manager: ImageManager
+        spawn_manager: SpawnManager
     ):
         self.bot = bot
         self.cache = cache
         self.spawn_manager = spawn_manager
-        self.image_manager = image_manager
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -3019,7 +2865,7 @@ class SpawningCog(commands.Cog):
 async def setup(bot):
     """Load the cog."""
     # TODO: Initialize dependencies
-    # await bot.add_cog(SpawningCog(bot, cache, spawn_manager, image_manager))
+    # await bot.add_cog(SpawningCog(bot, cache, spawn_manager))
     pass
 ```
 
