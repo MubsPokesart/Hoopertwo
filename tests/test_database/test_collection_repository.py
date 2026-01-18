@@ -102,3 +102,31 @@ def test_get_user_collection(db_connection):
     assert collection[0]["rarity_tier"] == "GOAT"
     assert collection[1]["name"] == "Michael Jordan"
     assert "caught_at" in collection[0]
+
+
+def test_get_collection_stats(db_connection):
+    """Test getting collection statistics."""
+    # Add test player with Mythic tier
+    db_connection.execute(
+        "INSERT INTO players (name, adp_value, rarity_tier) VALUES (?, ?, ?)",
+        ("Steph Curry", 15.5, "Mythic")
+    )
+    db_connection.commit()
+
+    repo = CollectionRepository(db_connection)
+
+    # Add players to collection
+    repo.add_player_to_collection(123456789, 1, 987654321)  # GOAT
+    repo.add_player_to_collection(123456789, 2, 987654321)  # Mythic
+
+    # Get stats
+    stats = repo.get_collection_stats(
+        user_id=123456789,
+        server_id=987654321
+    )
+
+    assert stats["total_players"] == 2
+    assert stats["total_points"] > 0
+    assert "GOAT" in stats["rarity_counts"]
+    assert stats["rarity_counts"]["GOAT"] == 1
+    assert stats["rarity_counts"]["Mythic"] == 1

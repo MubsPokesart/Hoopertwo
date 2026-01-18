@@ -2,6 +2,16 @@
 import sqlite3
 from typing import Optional, List, Dict, Any
 
+# Rarity point values
+RARITY_POINTS = {
+    "GOAT": 1000,
+    "Mythic": 500,
+    "Legendary": 250,
+    "Epic": 100,
+    "Rare": 50,
+    "Common": 10
+}
+
 
 class CollectionRepository:
     """Handles database operations for user collections.
@@ -96,3 +106,51 @@ class CollectionRepository:
 
         columns = ["id", "name", "rarity_tier", "adp_value", "image_url", "caught_at"]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def get_collection_stats(
+        self,
+        user_id: int,
+        server_id: int
+    ) -> Dict[str, Any]:
+        """Get statistics about a user's collection.
+
+        Args:
+            user_id: Discord user ID
+            server_id: Discord server ID
+
+        Returns:
+            Dictionary with total_players, total_points, and rarity_counts
+        """
+        cursor = self.connection.cursor()
+
+        # Get total count and rarity breakdown
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) as total,
+                p.rarity_tier,
+                COUNT(*) as tier_count
+            FROM user_collections uc
+            JOIN players p ON uc.player_id = p.id
+            WHERE uc.user_id = ? AND uc.server_id = ?
+            GROUP BY p.rarity_tier
+            """,
+            (user_id, server_id)
+        )
+
+        rarity_counts = {}
+        total_players = 0
+        total_points = 0
+
+        for row in cursor.fetchall():
+            tier_count = row[2]
+            rarity_tier = row[1]
+            rarity_counts[rarity_tier] = tier_count
+            total_players += tier_count
+            total_points += tier_count * RARITY_POINTS.get(rarity_tier, 0)
+
+        return {
+            "total_players": total_players,
+            "total_points": total_points,
+            "rarity_counts": rarity_counts
+        }
