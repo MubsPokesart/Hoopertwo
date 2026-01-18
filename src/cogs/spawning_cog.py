@@ -10,6 +10,7 @@ import logging
 
 from src.coordinators.cache_coordinator import CacheCoordinator
 from src.managers.spawn_manager import SpawnManager
+from src.managers.collection_manager import CollectionManager
 from src.validators.input_validator import InputValidator, ValidationError
 from src.utils.text_normalizer import TextNormalizer
 
@@ -34,7 +35,8 @@ class SpawningCog(commands.Cog):
         self,
         bot: commands.Bot,
         cache: CacheCoordinator,
-        spawn_manager: SpawnManager
+        spawn_manager: SpawnManager,
+        collection_manager: CollectionManager
     ):
         """Initialize spawning cog.
 
@@ -42,10 +44,12 @@ class SpawningCog(commands.Cog):
             bot: Discord bot instance
             cache: Cache coordinator for message counts and active spawns
             spawn_manager: Spawn manager for player selection
+            collection_manager: Collection manager for player collections
         """
         self.bot = bot
         self.cache = cache
         self.spawn_manager = spawn_manager
+        self.collection_manager = collection_manager
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -151,28 +155,43 @@ class SpawningCog(commands.Cog):
             await ctx.send(f"❌ That's not the right player!", ephemeral=True)
             return
 
-        # Correct! Clear the spawn
+        # Correct! Add to collection
+        result = self.collection_manager.catch_player(
+            user_id=ctx.author.id,
+            player_id=active_spawn["id"],
+            server_id=ctx.guild.id
+        )
+
         self.cache.clear_active_spawn(ctx.channel.id)
 
         # Create success embed
-        embed = discord.Embed(
-            title="✅ Player Caught!",
-            description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
-            color=discord.Color.green()
-        )
-        embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
-
-        if active_spawn.get("adp_value"):
-            embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
+        if result["already_owned"]:
+            embed = discord.Embed(
+                title="✅ Player Caught!",
+                description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
+            if active_spawn.get("adp_value"):
+                embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
+            embed.add_field(name="Status", value="⚠️ You already owned this player!", inline=False)
+        else:
+            embed = discord.Embed(
+                title="✅ Player Caught!",
+                description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
+            if active_spawn.get("adp_value"):
+                embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
+            embed.add_field(name="Status", value="🆕 New player added to your collection!", inline=False)
 
         if active_spawn.get("image_url"):
             embed.set_thumbnail(url=active_spawn["image_url"])
 
         await ctx.send(embed=embed)
 
-        logger.info(f"User {ctx.author.id} ({ctx.author.name}) caught {active_spawn['name']}")
-
-        # TODO: Add to user's collection via CollectionManager
+        logger.info(f"User {ctx.author.id} caught {active_spawn['name']} (already_owned={result['already_owned']})")
 
     @recognize.error
     async def recognize_error(self, ctx: commands.Context, error: commands.CommandError):
@@ -192,13 +211,13 @@ class SpawningCog(commands.Cog):
             await ctx.send("❌ An error occurred. Please try again.", ephemeral=True)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: commands.Bot, cache, spawn_manager, collection_manager):
     """Load the cog.
 
     Args:
         bot: Discord bot instance
+        cache: Cache coordinator instance
+        spawn_manager: Spawn manager instance
+        collection_manager: Collection manager instance
     """
-    # TODO: Initialize dependencies (cache, spawn_manager)
-    # For now, this is a placeholder
-    # await bot.add_cog(SpawningCog(bot, cache, spawn_manager))
-    pass
+    await bot.add_cog(SpawningCog(bot, cache, spawn_manager, collection_manager))
