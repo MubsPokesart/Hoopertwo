@@ -41,3 +41,32 @@ def test_add_player_to_collection_success(db_connection):
     )
     row = cursor.fetchone()
     assert row == (123456789, 1, 987654321)
+
+
+def test_add_player_to_collection_duplicate(db_connection):
+    """Test that adding the same player twice returns False."""
+    repo = CollectionRepository(db_connection)
+
+    # Add player first time
+    result1 = repo.add_player_to_collection(
+        user_id=123456789,
+        player_id=1,
+        server_id=987654321
+    )
+    assert result1 is True
+
+    # Try to add same player again
+    result2 = repo.add_player_to_collection(
+        user_id=123456789,
+        player_id=1,
+        server_id=987654321
+    )
+    assert result2 is False
+
+    # Verify only one entry exists
+    cursor = db_connection.execute(
+        "SELECT COUNT(*) FROM user_collections WHERE user_id = ? AND player_id = ?",
+        (123456789, 1)
+    )
+    count = cursor.fetchone()[0]
+    assert count == 1
