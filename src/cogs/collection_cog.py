@@ -134,3 +134,74 @@ class CollectionView(discord.ui.View):
 
         if self.message:
             await self.message.edit(view=self)
+
+
+class CollectionCog(commands.Cog):
+    """Commands for managing and viewing player collections."""
+
+    def __init__(self, bot: commands.Bot, collection_manager: CollectionManager):
+        """Initialize cog.
+
+        Args:
+            bot: Discord bot instance
+            collection_manager: Collection manager instance
+        """
+        self.bot = bot
+        self.collection_manager = collection_manager
+
+    @app_commands.command(name="collection", description="View your player collection")
+    @app_commands.describe(user="User whose collection to view (defaults to yourself)")
+    async def collection(
+        self,
+        interaction: discord.Interaction,
+        user: Optional[discord.Member] = None
+    ):
+        """Display a user's collection with pagination.
+
+        Args:
+            interaction: Discord interaction
+            user: User to view (defaults to command user)
+        """
+        # Default to command user
+        target_user = user or interaction.user
+
+        # Get collection data
+        collection_data = self.collection_manager.get_collection(
+            user_id=target_user.id,
+            server_id=interaction.guild_id,
+            page=0,
+            page_size=9  # 3x3 grid in embed
+        )
+
+        # Create view
+        view = CollectionView(
+            interaction=interaction,
+            collection_data=collection_data,
+            user_name=target_user.display_name
+        )
+
+        # Send initial message
+        embed = view._create_embed()
+        await interaction.response.send_message(embed=embed, view=view)
+
+        # Store message reference for timeout handling
+        callback = await interaction.original_response()
+        view.message = callback
+
+
+async def setup(bot: commands.Bot):
+    """Load the cog.
+
+    Args:
+        bot: Discord bot instance
+    """
+    # TODO: Initialize dependencies properly in bot.py
+    # from src.database.connection_manager import get_connection_manager
+    # from src.database.repositories.collection_repository import CollectionRepository
+    # from src.managers.collection_manager import CollectionManager
+    #
+    # conn = get_connection_manager().get_connection()
+    # repo = CollectionRepository(conn)
+    # manager = CollectionManager(repo)
+    # await bot.add_cog(CollectionCog(bot, manager))
+    pass
