@@ -70,3 +70,35 @@ def test_add_player_to_collection_duplicate(db_connection):
     )
     count = cursor.fetchone()[0]
     assert count == 1
+
+
+def test_get_user_collection(db_connection):
+    """Test retrieving a user's collection with player details."""
+    # Add more test players
+    db_connection.execute(
+        "INSERT INTO players (name, adp_value, rarity_tier) VALUES (?, ?, ?)",
+        ("Michael Jordan", 1.0, "GOAT")
+    )
+    db_connection.execute(
+        "INSERT INTO players (name, adp_value, rarity_tier) VALUES (?, ?, ?)",
+        ("Steph Curry", 15.5, "Mythic")
+    )
+    db_connection.commit()
+
+    repo = CollectionRepository(db_connection)
+
+    # Add players to collection
+    repo.add_player_to_collection(123456789, 1, 987654321)
+    repo.add_player_to_collection(123456789, 2, 987654321)
+
+    # Get collection
+    collection = repo.get_user_collection(
+        user_id=123456789,
+        server_id=987654321
+    )
+
+    assert len(collection) == 2
+    assert collection[0]["name"] == "LeBron James"
+    assert collection[0]["rarity_tier"] == "GOAT"
+    assert collection[1]["name"] == "Michael Jordan"
+    assert "caught_at" in collection[0]
