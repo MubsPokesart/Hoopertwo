@@ -52,20 +52,33 @@ class HooperTwoBot(commands.Bot):
         """Called when bot is starting up. Load cogs here."""
         logger.info("Bot setup hook called")
 
-        # Load SpawningCog (Batch 6)
+        # Import cogs and dependencies
         from src.cogs.spawning_cog import SpawningCog
+        from src.cogs.collection_cog import CollectionCog
         from src.coordinators.cache_coordinator import CacheCoordinator
         from src.managers.spawn_manager import SpawnManager
+        from src.managers.collection_manager import CollectionManager
         from src.database.repositories.player_repository import PlayerRepository
+        from src.database.repositories.collection_repository import CollectionRepository
 
-        # Initialize dependencies
+        # Initialize shared dependencies
         cache = CacheCoordinator()
-        player_repo = PlayerRepository(self.db)
-        spawn_manager = SpawnManager(player_repo)
 
-        # Add the cog
-        await self.add_cog(SpawningCog(self, cache, spawn_manager))
+        # Initialize repositories
+        player_repo = PlayerRepository(self.db)
+        collection_repo = CollectionRepository(self.db.get_connection())
+
+        # Initialize managers
+        spawn_manager = SpawnManager(player_repo)
+        collection_manager = CollectionManager(collection_repo)
+
+        # Load SpawningCog (Batch 6) with collection integration (Batch 7)
+        await self.add_cog(SpawningCog(self, cache, spawn_manager, collection_manager))
         logger.info("✅ SpawningCog loaded")
+
+        # Load CollectionCog (Batch 7)
+        await self.add_cog(CollectionCog(self, collection_manager))
+        logger.info("✅ CollectionCog loaded")
 
         # Log all registered commands
         logger.info(f"Registered prefix commands: {[cmd.name for cmd in self.commands]}")
