@@ -1,4 +1,5 @@
 """Manager for collection-related business logic."""
+import math
 from typing import Dict, Any, List
 from src.database.repositories.collection_repository import CollectionRepository
 
@@ -43,4 +44,39 @@ class CollectionManager:
         return {
             "success": True,
             "already_owned": not was_added
+        }
+
+    def get_collection(
+        self,
+        user_id: int,
+        server_id: int,
+        page: int = 0,
+        page_size: int = 10
+    ) -> Dict[str, Any]:
+        """Get a user's collection with pagination and stats.
+
+        Args:
+            user_id: Discord user ID
+            server_id: Discord server ID
+            page: Page number (0-indexed)
+            page_size: Number of players per page
+
+        Returns:
+            Dictionary with players, stats, and pagination info
+        """
+        # Get stats first to determine total pages
+        stats = self.repository.get_collection_stats(user_id, server_id)
+        total_pages = math.ceil(stats["total_players"] / page_size) if stats["total_players"] > 0 else 1
+
+        # Get players for current page
+        offset = page * page_size
+        players = self.repository.get_user_collection(
+            user_id, server_id, limit=page_size, offset=offset
+        )
+
+        return {
+            "players": players,
+            "stats": stats,
+            "total_pages": total_pages,
+            "current_page": page
         }
