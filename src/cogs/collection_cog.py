@@ -21,6 +21,10 @@ class CollectionView(discord.ui.View):
         interaction: discord.Interaction,
         collection_data: dict,
         user_name: str,
+        collection_manager,
+        user_id: int,
+        server_id: int,
+        page_size: int = 9,
         timeout: float = 180.0
     ):
         """Initialize pagination view.
@@ -29,12 +33,20 @@ class CollectionView(discord.ui.View):
             interaction: Original interaction that triggered the view
             collection_data: Dictionary with players, stats, and pagination info
             user_name: Display name of the collection owner
+            collection_manager: Manager to fetch new pages
+            user_id: Discord user ID
+            server_id: Discord server ID
+            page_size: Number of players per page
             timeout: Seconds before view times out (default 180)
         """
         super().__init__(timeout=timeout)
         self.interaction = interaction
         self.collection_data = collection_data
         self.user_name = user_name
+        self.collection_manager = collection_manager
+        self.user_id = user_id
+        self.server_id = server_id
+        self.page_size = page_size
         self.current_page = collection_data["current_page"]
         self.total_pages = collection_data["total_pages"]
         self.message: Optional[discord.Message] = None
@@ -74,6 +86,15 @@ class CollectionView(discord.ui.View):
 
         return embed
 
+    def _fetch_page_data(self):
+        """Fetch data for the current page."""
+        self.collection_data = self.collection_manager.get_collection(
+            user_id=self.user_id,
+            server_id=self.server_id,
+            page=self.current_page,
+            page_size=self.page_size
+        )
+
     def _update_buttons(self):
         """Update button disabled states based on current page."""
         # Get buttons
@@ -98,6 +119,7 @@ class CollectionView(discord.ui.View):
     async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Jump to first page."""
         self.current_page = 0
+        self._fetch_page_data()
         self._update_buttons()
         await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
@@ -105,6 +127,7 @@ class CollectionView(discord.ui.View):
     async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Go to previous page."""
         self.current_page = max(0, self.current_page - 1)
+        self._fetch_page_data()
         self._update_buttons()
         await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
@@ -117,6 +140,7 @@ class CollectionView(discord.ui.View):
     async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Go to next page."""
         self.current_page = min(self.total_pages - 1, self.current_page + 1)
+        self._fetch_page_data()
         self._update_buttons()
         await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
@@ -124,6 +148,7 @@ class CollectionView(discord.ui.View):
     async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Jump to last page."""
         self.current_page = self.total_pages - 1
+        self._fetch_page_data()
         self._update_buttons()
         await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
@@ -164,20 +189,25 @@ class CollectionCog(commands.Cog):
         """
         # Default to command user
         target_user = user or interaction.user
+        page_size = 9  # 3x3 grid in embed
 
         # Get collection data
         collection_data = self.collection_manager.get_collection(
             user_id=target_user.id,
             server_id=interaction.guild_id,
             page=0,
-            page_size=9  # 3x3 grid in embed
+            page_size=page_size
         )
 
         # Create view
         view = CollectionView(
             interaction=interaction,
             collection_data=collection_data,
-            user_name=target_user.display_name
+            user_name=target_user.display_name,
+            collection_manager=self.collection_manager,
+            user_id=target_user.id,
+            server_id=interaction.guild_id,
+            page_size=page_size
         )
 
         # Send initial message
