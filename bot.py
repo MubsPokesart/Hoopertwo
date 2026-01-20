@@ -56,6 +56,7 @@ class HooperTwoBot(commands.Bot):
         from src.cogs.spawning_cog import SpawningCog
         from src.cogs.collection_cog import CollectionCog
         from src.cogs.leaderboard_cog import LeaderboardCog
+        from src.tasks.leaderboard_tasks import LeaderboardTasks
         from src.coordinators.cache_coordinator import CacheCoordinator
         from src.managers.spawn_manager import SpawnManager
         from src.managers.collection_manager import CollectionManager
@@ -88,6 +89,10 @@ class HooperTwoBot(commands.Bot):
         # Load LeaderboardCog (Batch 8)
         await self.add_cog(LeaderboardCog(self, leaderboard_manager))
         logger.info("✅ LeaderboardCog loaded")
+
+        # Load LeaderboardTasks (Batch 8 - Background Tasks)
+        await self.add_cog(LeaderboardTasks(self, leaderboard_manager))
+        logger.info("✅ LeaderboardTasks loaded")
 
         # Log all registered commands
         logger.info(f"Registered prefix commands: {[cmd.name for cmd in self.commands]}")
