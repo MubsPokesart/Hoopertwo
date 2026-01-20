@@ -62,3 +62,55 @@ class LeaderboardRepository:
             return True
         except sqlite3.Error:
             return False
+
+    def get_rankings(
+        self,
+        server_id: int,
+        period: str,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Get leaderboard rankings for a period.
+
+        Args:
+            server_id: Discord server ID
+            period: Time period to query
+            limit: Maximum number of results
+            offset: Number of results to skip
+
+        Returns:
+            List of dictionaries with rank, user_id, points, and player_count
+        """
+        cursor = self.connection.cursor()
+
+        # Get latest snapshot date for this period
+        cursor.execute(
+            """
+            SELECT MAX(snapshot_date) FROM leaderboard_snapshots
+            WHERE server_id = ? AND period = ?
+            """,
+            (server_id, period)
+        )
+        latest_date = cursor.fetchone()[0]
+
+        if not latest_date:
+            return []
+
+        # Get rankings for latest snapshot
+        cursor.execute(
+            """
+            SELECT
+                user_id,
+                points,
+                player_count,
+                ROW_NUMBER() OVER (ORDER BY points DESC) as rank
+            FROM leaderboard_snapshots
+            WHERE server_id = ? AND period = ? AND snapshot_date = ?
+            ORDER BY points DESC
+            LIMIT ? OFFSET ?
+            """,
+            (server_id, period, latest_date, limit, offset)
+        )
+
+        columns = ["user_id", "points", "player_count", "rank"]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]

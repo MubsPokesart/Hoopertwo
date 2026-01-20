@@ -44,3 +44,29 @@ def test_create_snapshot(db_connection):
     )
     row = cursor.fetchone()
     assert row == (123456789, 1500, 3, "weekly")
+
+
+def test_get_rankings(db_connection):
+    """Test retrieving rankings for a period."""
+    repo = LeaderboardRepository(db_connection)
+
+    # Create multiple snapshots
+    snapshot_date = date(2026, 1, 18)
+    repo.create_snapshot(123, 987, "weekly", 1500, 3, snapshot_date)
+    repo.create_snapshot(456, 987, "weekly", 2000, 4, snapshot_date)
+    repo.create_snapshot(789, 987, "weekly", 1000, 2, snapshot_date)
+
+    # Get rankings
+    rankings = repo.get_rankings(
+        server_id=987,
+        period="weekly",
+        limit=10
+    )
+
+    assert len(rankings) == 3
+    # Should be sorted by points descending
+    assert rankings[0]["user_id"] == 456
+    assert rankings[0]["points"] == 2000
+    assert rankings[0]["rank"] == 1
+    assert rankings[1]["user_id"] == 123
+    assert rankings[1]["rank"] == 2
