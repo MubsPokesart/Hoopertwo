@@ -70,3 +70,25 @@ def test_get_rankings(db_connection):
     assert rankings[0]["rank"] == 1
     assert rankings[1]["user_id"] == 123
     assert rankings[1]["rank"] == 2
+
+
+def test_get_user_rank(db_connection):
+    """Test getting a specific user's rank."""
+    repo = LeaderboardRepository(db_connection)
+
+    snapshot_date = date(2026, 1, 18)
+    repo.create_snapshot(123, 987, "weekly", 1500, 3, snapshot_date)
+    repo.create_snapshot(456, 987, "weekly", 2000, 4, snapshot_date)
+    repo.create_snapshot(789, 987, "weekly", 1000, 2, snapshot_date)
+
+    # Get rank for middle user
+    user_rank = repo.get_user_rank(
+        user_id=123,
+        server_id=987,
+        period="weekly"
+    )
+
+    assert user_rank is not None
+    assert user_rank["rank"] == 2
+    assert user_rank["points"] == 1500
+    assert user_rank["player_count"] == 3

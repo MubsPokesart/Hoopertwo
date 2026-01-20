@@ -114,3 +114,63 @@ class LeaderboardRepository:
 
         columns = ["user_id", "points", "player_count", "rank"]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def get_user_rank(
+        self,
+        user_id: int,
+        server_id: int,
+        period: str
+    ) -> Optional[Dict[str, Any]]:
+        """Get a specific user's rank and stats.
+
+        Args:
+            user_id: Discord user ID
+            server_id: Discord server ID
+            period: Time period to query
+
+        Returns:
+            Dictionary with rank, points, and player_count, or None if not found
+        """
+        cursor = self.connection.cursor()
+
+        # Get latest snapshot date
+        cursor.execute(
+            """
+            SELECT MAX(snapshot_date) FROM leaderboard_snapshots
+            WHERE server_id = ? AND period = ?
+            """,
+            (server_id, period)
+        )
+        latest_date = cursor.fetchone()[0]
+
+        if not latest_date:
+            return None
+
+        # Get user's rank using subquery
+        cursor.execute(
+            """
+            WITH ranked_users AS (
+                SELECT
+                    user_id,
+                    points,
+                    player_count,
+                    ROW_NUMBER() OVER (ORDER BY points DESC) as rank
+                FROM leaderboard_snapshots
+                WHERE server_id = ? AND period = ? AND snapshot_date = ?
+            )
+            SELECT rank, points, player_count
+            FROM ranked_users
+            WHERE user_id = ?
+            """,
+            (server_id, period, latest_date, user_id)
+        )
+
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        return {
+            "rank": row[0],
+            "points": row[1],
+            "player_count": row[2]
+        }
