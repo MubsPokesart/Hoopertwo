@@ -185,3 +185,123 @@ class LeaderboardView(discord.ui.View):
 
         if self.message:
             await self.message.edit(view=self)
+
+
+class LeaderboardCog(commands.Cog):
+    """Commands for viewing leaderboards and rankings."""
+
+    def __init__(self, bot: commands.Bot, leaderboard_manager: LeaderboardManager):
+        """Initialize cog.
+
+        Args:
+            bot: Discord bot instance
+            leaderboard_manager: Leaderboard manager instance
+        """
+        self.bot = bot
+        self.leaderboard_manager = leaderboard_manager
+
+    @app_commands.command(name="leaderboard", description="View server leaderboard")
+    @app_commands.describe(period="Time period to view (defaults to weekly)")
+    @app_commands.choices(period=[
+        app_commands.Choice(name="Weekly", value="weekly"),
+        app_commands.Choice(name="Monthly", value="monthly"),
+        app_commands.Choice(name="Yearly", value="yearly"),
+        app_commands.Choice(name="All Time", value="alltime")
+    ])
+    async def leaderboard(
+        self,
+        interaction: discord.Interaction,
+        period: app_commands.Choice[str] = None
+    ):
+        """Display server leaderboard with rankings.
+
+        Args:
+            interaction: Discord interaction
+            period: Time period to display
+        """
+        selected_period = period.value if period else "weekly"
+
+        # Create view
+        view = LeaderboardView(
+            interaction=interaction,
+            leaderboard_manager=self.leaderboard_manager,
+            server_id=interaction.guild_id,
+            initial_period=selected_period
+        )
+
+        # Send initial message
+        embed = view._create_embed()
+        await interaction.response.send_message(embed=embed, view=view)
+
+        # Store message reference
+        callback = await interaction.original_response()
+        view.message = callback
+
+    @app_commands.command(name="rank", description="Check your current rank")
+    @app_commands.describe(
+        period="Time period to check (defaults to all-time)",
+        user="User to check rank for (defaults to yourself)"
+    )
+    @app_commands.choices(period=[
+        app_commands.Choice(name="Weekly", value="weekly"),
+        app_commands.Choice(name="Monthly", value="monthly"),
+        app_commands.Choice(name="Yearly", value="yearly"),
+        app_commands.Choice(name="All Time", value="alltime")
+    ])
+    async def rank(
+        self,
+        interaction: discord.Interaction,
+        period: app_commands.Choice[str] = None,
+        user: Optional[discord.Member] = None
+    ):
+        """Check your or another user's rank.
+
+        Args:
+            interaction: Discord interaction
+            period: Time period to check
+            user: User to check (defaults to command user)
+        """
+        target_user = user or interaction.user
+        selected_period = period.value if period else "alltime"
+
+        # Get user's rank
+        rank_data = self.leaderboard_manager.leaderboard_repo.get_user_rank(
+            user_id=target_user.id,
+            server_id=interaction.guild_id,
+            period=selected_period
+        )
+
+        period_label = LeaderboardView.PERIOD_LABELS.get(selected_period, selected_period)
+
+        if rank_data:
+            embed = discord.Embed(
+                title=f"📊 Rank - {period_label}",
+                description=f"**{target_user.display_name}'s Stats**",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="Rank", value=f"#{rank_data['rank']}", inline=True)
+            embed.add_field(name="Points", value=f"{rank_data['points']:,}", inline=True)
+            embed.add_field(name="Players", value=str(rank_data['player_count']), inline=True)
+        else:
+            embed = discord.Embed(
+                title=f"📊 Rank - {period_label}",
+                description=f"{target_user.display_name} has no ranking yet!",
+                color=discord.Color.red()
+            )
+            embed.add_field(
+                name="Get Started",
+                value="Catch players using `/recognize` to start building your collection!",
+                inline=False
+            )
+
+        await interaction.response.send_message(embed=embed)
+
+
+async def setup(bot: commands.Bot):
+    """Load the cog.
+
+    Args:
+        bot: Discord bot instance
+    """
+    # TODO: Initialize in bot.py with proper dependencies
+    pass
