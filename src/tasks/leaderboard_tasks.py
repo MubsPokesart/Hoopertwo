@@ -1,6 +1,6 @@
 """Background tasks for leaderboard system."""
 import logging
-from datetime import date, datetime, timezone, timedelta
+from datetime import date, datetime, timezone, timedelta, time
 from discord.ext import tasks, commands
 from src.managers.leaderboard_manager import LeaderboardManager
 
@@ -31,7 +31,7 @@ class LeaderboardTasks(commands.Cog):
         """Stop tasks when cog is unloaded."""
         self.create_daily_snapshots.cancel()
 
-    @tasks.loop(time=datetime.time(hour=0, minute=0, tzinfo=timezone.utc))
+    @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))
     async def create_daily_snapshots(self):
         """Create snapshots for all servers at midnight UTC."""
         logger.info("Starting daily snapshot creation...")
