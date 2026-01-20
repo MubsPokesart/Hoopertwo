@@ -99,8 +99,84 @@ class LeaderboardView(discord.ui.View):
 
     def _update_buttons(self):
         """Update button states based on current page."""
-        # Will implement after adding buttons
+        # Get buttons (skip select menu at index 0)
+        first_button = self.children[1]
+        prev_button = self.children[2]
+        page_button = self.children[3]
+        next_button = self.children[4]
+        last_button = self.children[5]
+
+        # Disable first/prev if on first page
+        first_button.disabled = self.current_page == 0
+        prev_button.disabled = self.current_page == 0
+
+        # Disable next/last if on last page
+        total_pages = self.rankings_data["total_pages"]
+        next_button.disabled = self.current_page >= total_pages - 1
+        last_button.disabled = self.current_page >= total_pages - 1
+
+        # Update page indicator
+        page_button.label = f"Page {self.current_page + 1}/{total_pages}"
+
+    @discord.ui.select(
+        placeholder="Select Time Period",
+        options=[
+            discord.SelectOption(label="Weekly", value="weekly", emoji="📅", default=True),
+            discord.SelectOption(label="Monthly", value="monthly", emoji="📆"),
+            discord.SelectOption(label="Yearly", value="yearly", emoji="🗓️"),
+            discord.SelectOption(label="All Time", value="alltime", emoji="♾️")
+        ]
+    )
+    async def period_selector(self, interaction: discord.Interaction, select: discord.ui.Select):
+        """Handle period selection."""
+        self.current_period = select.values[0]
+        self.current_page = 0  # Reset to first page
+
+        # Update dropdown default
+        for option in select.options:
+            option.default = (option.value == self.current_period)
+
+        self._load_rankings()
+        self._update_buttons()
+
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
+
+    @discord.ui.button(label="⏮️ First", style=discord.ButtonStyle.gray, custom_id="lb_first")
+    async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Jump to first page."""
+        self.current_page = 0
+        self._load_rankings()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
+
+    @discord.ui.button(label="◀️ Prev", style=discord.ButtonStyle.blurple, custom_id="lb_prev")
+    async def previous_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Go to previous page."""
+        self.current_page = max(0, self.current_page - 1)
+        self._load_rankings()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
+
+    @discord.ui.button(label="Page 1/1", style=discord.ButtonStyle.green, custom_id="lb_page", disabled=True)
+    async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Page indicator (disabled button)."""
         pass
+
+    @discord.ui.button(label="Next ▶️", style=discord.ButtonStyle.blurple, custom_id="lb_next")
+    async def next_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Go to next page."""
+        self.current_page = min(self.rankings_data["total_pages"] - 1, self.current_page + 1)
+        self._load_rankings()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
+
+    @discord.ui.button(label="Last ⏭️", style=discord.ButtonStyle.gray, custom_id="lb_last")
+    async def last_page(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Jump to last page."""
+        self.current_page = self.rankings_data["total_pages"] - 1
+        self._load_rankings()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
     async def on_timeout(self):
         """Disable all components on timeout."""
