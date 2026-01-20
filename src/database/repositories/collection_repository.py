@@ -154,3 +154,41 @@ class CollectionRepository:
             "total_points": total_points,
             "rarity_counts": rarity_counts
         }
+
+    def get_all_server_users(self, server_id: int) -> List[Dict[str, Any]]:
+        """Get stats for all users in a server.
+
+        Args:
+            server_id: Discord server ID
+
+        Returns:
+            List of dictionaries with user_id, total_points, and player_count
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                uc.user_id,
+                COUNT(*) as player_count,
+                SUM(
+                    CASE p.rarity_tier
+                        WHEN 'GOAT' THEN 1000
+                        WHEN 'Mythic' THEN 500
+                        WHEN 'Legendary' THEN 250
+                        WHEN 'Epic' THEN 100
+                        WHEN 'Rare' THEN 50
+                        WHEN 'Common' THEN 10
+                        ELSE 0
+                    END
+                ) as total_points
+            FROM user_collections uc
+            JOIN players p ON uc.player_id = p.id
+            WHERE uc.server_id = ?
+            GROUP BY uc.user_id
+            """,
+            (server_id,)
+        )
+
+        columns = ["user_id", "player_count", "total_points"]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
