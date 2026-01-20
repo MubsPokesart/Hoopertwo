@@ -1,4 +1,5 @@
 """Manager for leaderboard business logic."""
+import math
 from datetime import date
 from typing import Dict, Any, List
 from src.database.repositories.leaderboard_repository import LeaderboardRepository
@@ -60,3 +61,46 @@ class LeaderboardManager:
             count += 1
 
         return count
+
+    def get_rankings(
+        self,
+        server_id: int,
+        period: str,
+        page: int = 0,
+        page_size: int = 10
+    ) -> Dict[str, Any]:
+        """Get formatted leaderboard rankings.
+
+        Args:
+            server_id: Discord server ID
+            period: Time period to query
+            page: Page number (0-indexed)
+            page_size: Number of results per page
+
+        Returns:
+            Dictionary with rankings, period, and pagination info
+        """
+        # Get total count first (query without limit)
+        all_rankings = self.leaderboard_repo.get_rankings(
+            server_id=server_id,
+            period=period,
+            limit=1000  # Get all for count
+        )
+        total_count = len(all_rankings)
+        total_pages = math.ceil(total_count / page_size) if total_count > 0 else 1
+
+        # Get paginated results
+        offset = page * page_size
+        rankings = self.leaderboard_repo.get_rankings(
+            server_id=server_id,
+            period=period,
+            limit=page_size,
+            offset=offset
+        )
+
+        return {
+            "rankings": rankings,
+            "period": period,
+            "current_page": page,
+            "total_pages": total_pages
+        }
