@@ -55,11 +55,14 @@ class HooperTwoBot(commands.Bot):
         # Import cogs and dependencies
         from src.cogs.spawning_cog import SpawningCog
         from src.cogs.collection_cog import CollectionCog
+        from src.cogs.leaderboard_cog import LeaderboardCog
         from src.coordinators.cache_coordinator import CacheCoordinator
         from src.managers.spawn_manager import SpawnManager
         from src.managers.collection_manager import CollectionManager
+        from src.managers.leaderboard_manager import LeaderboardManager
         from src.database.repositories.player_repository import PlayerRepository
         from src.database.repositories.collection_repository import CollectionRepository
+        from src.database.repositories.leaderboard_repository import LeaderboardRepository
 
         # Initialize shared dependencies
         cache = CacheCoordinator()
@@ -67,10 +70,12 @@ class HooperTwoBot(commands.Bot):
         # Initialize repositories
         player_repo = PlayerRepository(self.db)
         collection_repo = CollectionRepository(self.db.get_connection())
+        leaderboard_repo = LeaderboardRepository(self.db.get_connection())
 
         # Initialize managers
         spawn_manager = SpawnManager(player_repo)
         collection_manager = CollectionManager(collection_repo)
+        leaderboard_manager = LeaderboardManager(leaderboard_repo, collection_repo)
 
         # Load SpawningCog (Batch 6) with collection integration (Batch 7)
         await self.add_cog(SpawningCog(self, cache, spawn_manager, collection_manager))
@@ -79,6 +84,10 @@ class HooperTwoBot(commands.Bot):
         # Load CollectionCog (Batch 7)
         await self.add_cog(CollectionCog(self, collection_manager))
         logger.info("✅ CollectionCog loaded")
+
+        # Load LeaderboardCog (Batch 8)
+        await self.add_cog(LeaderboardCog(self, leaderboard_manager))
+        logger.info("✅ LeaderboardCog loaded")
 
         # Log all registered commands
         logger.info(f"Registered prefix commands: {[cmd.name for cmd in self.commands]}")
