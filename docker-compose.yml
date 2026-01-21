@@ -10,6 +10,8 @@ services:
     volumes:
       # Persist database and images
       - ./data:/app/data
+      # Persist backups
+      - ./backups:/app/backups
     networks:
       - hooper-network
     logging:
