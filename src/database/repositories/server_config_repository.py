@@ -68,3 +68,27 @@ class ServerConfigRepository:
 
         # Return newly created config
         return self.get_or_create_config(server_id)
+
+    def update_spawn_threshold(self, server_id: int, threshold: int) -> bool:
+        """Update spawn threshold for a server.
+
+        Args:
+            server_id: Discord server ID
+            threshold: New spawn threshold (number of messages)
+
+        Returns:
+            True if updated successfully
+        """
+        cursor = self.connection.cursor()
+
+        cursor.execute(
+            """
+            UPDATE server_configs
+            SET spawn_threshold = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE server_id = ?
+            """,
+            (threshold, server_id)
+        )
+        self.connection.commit()
+
+        return cursor.rowcount > 0

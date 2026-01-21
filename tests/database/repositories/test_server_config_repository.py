@@ -23,3 +23,23 @@ def test_get_or_create_config_new_server(db_connection):
     assert config["server_id"] == 987654321
     assert config["spawn_threshold"] == 500  # Default
     assert config["spawn_channels"] == []  # Default empty list
+
+
+def test_update_spawn_threshold(db_connection):
+    """Test updating spawn threshold."""
+    repo = ServerConfigRepository(db_connection)
+
+    # Create config
+    repo.get_or_create_config(987654321)
+
+    # Update threshold
+    result = repo.update_spawn_threshold(
+        server_id=987654321,
+        threshold=300
+    )
+
+    assert result is True
+
+    # Verify update
+    config = repo.get_or_create_config(987654321)
+    assert config["spawn_threshold"] == 300
