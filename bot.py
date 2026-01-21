@@ -56,14 +56,17 @@ class HooperTwoBot(commands.Bot):
         from src.cogs.spawning_cog import SpawningCog
         from src.cogs.collection_cog import CollectionCog
         from src.cogs.leaderboard_cog import LeaderboardCog
+        from src.cogs.admin_cog import AdminCog
         from src.tasks.leaderboard_tasks import LeaderboardTasks
         from src.coordinators.cache_coordinator import CacheCoordinator
         from src.managers.spawn_manager import SpawnManager
         from src.managers.collection_manager import CollectionManager
         from src.managers.leaderboard_manager import LeaderboardManager
+        from src.managers.config_manager import ConfigManager
         from src.database.repositories.player_repository import PlayerRepository
         from src.database.repositories.collection_repository import CollectionRepository
         from src.database.repositories.leaderboard_repository import LeaderboardRepository
+        from src.database.repositories.server_config_repository import ServerConfigRepository
 
         # Initialize shared dependencies
         cache = CacheCoordinator()
@@ -72,14 +75,16 @@ class HooperTwoBot(commands.Bot):
         player_repo = PlayerRepository(self.db)
         collection_repo = CollectionRepository(self.db.get_connection())
         leaderboard_repo = LeaderboardRepository(self.db.get_connection())
+        config_repo = ServerConfigRepository(self.db.get_connection())
 
         # Initialize managers
         spawn_manager = SpawnManager(player_repo)
         collection_manager = CollectionManager(collection_repo)
         leaderboard_manager = LeaderboardManager(leaderboard_repo, collection_repo)
+        config_manager = ConfigManager(config_repo)
 
-        # Load SpawningCog (Batch 6) with collection integration (Batch 7)
-        await self.add_cog(SpawningCog(self, cache, spawn_manager, collection_manager))
+        # Load SpawningCog (Batch 6) with collection integration (Batch 7) and config (Batch 9)
+        await self.add_cog(SpawningCog(self, cache, spawn_manager, collection_manager, config_manager))
         logger.info("✅ SpawningCog loaded")
 
         # Load CollectionCog (Batch 7)
@@ -93,6 +98,10 @@ class HooperTwoBot(commands.Bot):
         # Load LeaderboardTasks (Batch 8 - Background Tasks)
         await self.add_cog(LeaderboardTasks(self, leaderboard_manager))
         logger.info("✅ LeaderboardTasks loaded")
+
+        # Load AdminCog (Batch 9)
+        await self.add_cog(AdminCog(self, config_manager))
+        logger.info("✅ AdminCog loaded")
 
         # Log all registered commands
         logger.info(f"Registered prefix commands: {[cmd.name for cmd in self.commands]}")
