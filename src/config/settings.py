@@ -1,6 +1,7 @@
 """Application configuration loaded from environment variables."""
 import os
 from typing import Optional
+from pathlib import Path
 from dotenv import load_dotenv
 
 
@@ -45,6 +46,9 @@ class Settings:
         self.backup_retention_days = int(
             os.getenv("BACKUP_RETENTION_DAYS", "7")
         )
+
+        # Ensure backup directory exists
+        Path(self.backup_directory).mkdir(parents=True, exist_ok=True)
 
     def _get_required(self, key: str) -> str:
         """Get a required environment variable or raise ValueError."""
