@@ -108,3 +108,24 @@ def test_cleanup_old_backups(temp_database):
     # Note: In real scenario, we'd use file modification time
     assert deleted_count >= 0
     assert Path(recent_backup).exists()
+
+
+def test_list_backups(temp_database):
+    """Test listing available backups."""
+    manager = BackupManager(
+        database_path=str(temp_database["db_path"]),
+        backup_directory=str(temp_database["backup_dir"])
+    )
+
+    # Create multiple backups
+    backup1 = manager.create_backup()
+    time.sleep(1.1)  # Ensure different timestamps (format uses seconds)
+    backup2 = manager.create_backup()
+
+    # List backups
+    backups = manager.list_backups()
+
+    assert len(backups) == 2
+    assert backups[0]["path"] in [backup1, backup2]
+    assert "size" in backups[0]
+    assert "created_at" in backups[0]

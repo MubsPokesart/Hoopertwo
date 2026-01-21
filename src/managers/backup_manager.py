@@ -4,7 +4,7 @@ import logging
 import os
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
@@ -137,3 +137,31 @@ class BackupManager:
         except Exception as e:
             logger.error(f"Backup cleanup failed: {e}")
             return 0
+
+    def list_backups(self) -> List[Dict[str, Any]]:
+        """List all available backups.
+
+        Returns:
+            List of dictionaries with backup metadata
+        """
+        backups = []
+
+        try:
+            for backup_file in sorted(
+                self.backup_directory.glob("hooper_backup_*.db"),
+                key=lambda x: x.stat().st_mtime,
+                reverse=True  # Most recent first
+            ):
+                file_stats = backup_file.stat()
+
+                backups.append({
+                    "path": str(backup_file),
+                    "filename": backup_file.name,
+                    "size": file_stats.st_size,
+                    "created_at": datetime.fromtimestamp(file_stats.st_mtime)
+                })
+
+        except Exception as e:
+            logger.error(f"Failed to list backups: {e}")
+
+        return backups
