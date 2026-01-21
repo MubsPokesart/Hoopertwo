@@ -53,6 +53,9 @@ class ConfigManager:
                 f"and {self.MAX_SPAWN_THRESHOLD}"
             )
 
+        # Ensure config exists
+        self.repository.get_or_create_config(server_id)
+
         # Update in database
         success = self.repository.update_spawn_threshold(server_id, threshold)
 
@@ -83,6 +86,9 @@ class ConfigManager:
 
         # Remove duplicates while preserving order
         unique_channels = list(dict.fromkeys(channel_ids))
+
+        # Ensure config exists
+        self.repository.get_or_create_config(server_id)
 
         # Update in database
         success = self.repository.update_spawn_channels(server_id, unique_channels)
