@@ -57,12 +57,13 @@ class HooperTwoBot(commands.Bot):
         from src.cogs.collection_cog import CollectionCog
         from src.cogs.leaderboard_cog import LeaderboardCog
         from src.cogs.admin_cog import AdminCog
-        from src.tasks.leaderboard_tasks import LeaderboardTasks
+        from src.tasks.scheduled_tasks import ScheduledTasks
         from src.coordinators.cache_coordinator import CacheCoordinator
         from src.managers.spawn_manager import SpawnManager
         from src.managers.collection_manager import CollectionManager
         from src.managers.leaderboard_manager import LeaderboardManager
         from src.managers.config_manager import ConfigManager
+        from src.managers.backup_manager import BackupManager
         from src.database.repositories.player_repository import PlayerRepository
         from src.database.repositories.collection_repository import CollectionRepository
         from src.database.repositories.leaderboard_repository import LeaderboardRepository
@@ -82,6 +83,10 @@ class HooperTwoBot(commands.Bot):
         collection_manager = CollectionManager(collection_repo)
         leaderboard_manager = LeaderboardManager(leaderboard_repo, collection_repo)
         config_manager = ConfigManager(config_repo)
+        backup_manager = BackupManager(
+            database_path=self.settings.database_path,
+            backup_directory=self.settings.backup_directory
+        )
 
         # Load SpawningCog (Batch 6) with collection integration (Batch 7) and config (Batch 9)
         await self.add_cog(SpawningCog(self, cache, spawn_manager, collection_manager, config_manager))
@@ -95,12 +100,12 @@ class HooperTwoBot(commands.Bot):
         await self.add_cog(LeaderboardCog(self, leaderboard_manager))
         logger.info("✅ LeaderboardCog loaded")
 
-        # Load LeaderboardTasks (Batch 8 - Background Tasks)
-        await self.add_cog(LeaderboardTasks(self, leaderboard_manager))
-        logger.info("✅ LeaderboardTasks loaded")
+        # Load ScheduledTasks (Batch 8 & 10 - Background Tasks)
+        await self.add_cog(ScheduledTasks(self, leaderboard_manager, backup_manager))
+        logger.info("✅ ScheduledTasks loaded")
 
-        # Load AdminCog (Batch 9)
-        await self.add_cog(AdminCog(self, config_manager))
+        # Load AdminCog (Batch 9 & 10)
+        await self.add_cog(AdminCog(self, config_manager, backup_manager))
         logger.info("✅ AdminCog loaded")
 
         # Log all registered commands
