@@ -2,10 +2,22 @@
 
 This script parses player stats from CSV (data/scoring.csv), filters for those with
 >1000 career minutes, verifies they have valid images, and adds them to
-the database as Common rarity. Skips players already in the database
-(preserves ADP board data).
+the database with appropriate rarity tiers. After processing the CSV, it also
+checks for any ADP board players not in the CSV and adds them to ensure 100%
+ADP board coverage.
 
-Run from project root: python scripts/seed_all_players.py
+Usage:
+    # Normal run (incremental, preserves existing players)
+    python scripts/seed_all_players.py
+
+    # Fresh start (clears database first)
+    python scripts/seed_all_players.py --clear
+
+Features:
+- Image verification via nodriver (Cloudflare bypass)
+- Skip list caching for efficient re-runs
+- ADP board players bypass verification (added even without images)
+- Processes missing ADP players after CSV processing
 """
 import sys
 import logging
@@ -13,6 +25,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Set
 import time
 import json
+import asyncio
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -22,6 +35,7 @@ from src.database.repositories.player_repository import PlayerRepository
 from src.config.settings import get_settings
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 from src.scrapers.player_stats_csv_parser import PlayerStatsCSVParser
+from src.scrapers.image_verifier import ImageVerifier
 from src.managers.player_manager import PlayerManager
 
 # Configure logging
@@ -121,6 +135,29 @@ class SkipListManager:
             logger.warning(f"Unknown skip reason: {reason}")
 
 
+def clear_seeded_players(db: ConnectionManager) -> int:
+    """Clear all players from the database to prepare for fresh seeding.
+
+    Args:
+        db: Database connection manager
+
+    Returns:
+        Number of players deleted
+    """
+    cursor = db.get_connection().cursor()
+    cursor.execute("SELECT COUNT(*) FROM players")
+    count = cursor.fetchone()[0]
+
+    if count > 0:
+        cursor.execute("DELETE FROM players")
+        db.get_connection().commit()
+        logger.info(f"Cleared {count} players from database")
+    else:
+        logger.info("No players to clear from database")
+
+    return count
+
+
 def is_on_adp_board(player_name: str, adp_players_path: str) -> bool:
     """Check if player is on ADP board.
 
@@ -137,6 +174,23 @@ def is_on_adp_board(player_name: str, adp_players_path: str) -> bool:
         return player_name in data["verified"] or player_name in data["estimated"]
     return False
         
+
+def get_all_adp_players(adp_players_path: str) -> Dict[str, dict]:
+    """Get all players on the ADP board (both verified and estimated).
+
+    Args:
+        adp_players_path: Path to ADP players JSON file
+
+    Returns:
+        Dictionary mapping player names to their ADP objects
+    """
+    with open(adp_players_path, 'r') as file:
+        data = json.load(file)
+        all_players = {}
+        all_players.update(data.get("verified", {}))
+        all_players.update(data.get("estimated", {}))
+        return all_players
+
 
 def get_adp_object(player_name: str, adp_players_path: str) -> dict:
     """Get the details on a player on the ADP board
@@ -157,8 +211,21 @@ def get_adp_object(player_name: str, adp_players_path: str) -> dict:
     return None
 
 
-def seed_all_players():
-    """Main function to seed database with all NBA players >1000 minutes."""
+async def seed_all_players(clear_database: bool = False):
+    """Main function to seed database with all NBA players >1000 minutes.
+
+    Process:
+    1. (Optional) Clear existing players from database
+    2. Parse players from scoring.csv with >1000 career minutes
+    3. For each player in CSV:
+       - Verify image URL (unless on ADP board)
+       - Add to database with appropriate rarity tier
+    4. Process ADP board players not in scoring.csv
+       - Add any missing ADP players to ensure 100% coverage
+
+    Args:
+        clear_database: If True, clears all players before seeding (default: False)
+    """
     logger.info("Starting player seeding process...")
 
     # Get settings
@@ -168,11 +235,21 @@ def seed_all_players():
     db = ConnectionManager(settings.database_path)
     repo = PlayerRepository(db)
 
+    # Optional: Clear database for fresh seeding
+    if clear_database:
+        logger.warning("CLEARING DATABASE - All existing players will be removed!")
+        clear_seeded_players(db)
+        logger.info("Database cleared. Starting fresh seeding...\n")
+
     # Initialize Basketball Reference client
     logger.info("Initializing Basketball Reference client...")
     br_client = BasketballReferenceClient(
         player_id_db_path=settings.adp_players_path
     )
+
+    # Initialize ImageVerifier for Cloudflare-protected image URL verification
+    logger.info("Initializing ImageVerifier (nodriver browser for Cloudflare bypass)...")
+    image_verifier = ImageVerifier(rate_limit_delay=2.5)
 
     # Initialize skip list manager
     skip_list_path = Path("data/skipped_players.json")
@@ -232,6 +309,16 @@ def seed_all_players():
         # Get image URL from Basketball Reference
         image_url = br_client.get_player_image_url(player_name)
 
+        # Verify image exists (unless ADP player - those skip verification)
+        # ADP players are added even without valid images and flagged for manual fixing
+        if image_url and not on_adp_board:
+            logger.debug(f"Verifying image URL for {player_name}...")
+            is_valid = await image_verifier.verify_image_url(image_url)
+
+            if not is_valid:
+                image_url = None  # Mark as invalid
+                skip_list.add_skipped_player(player_name, 'no_image')
+                logger.info(f"Image verification failed for {player_name}, added to skip list")
 
         # Decision logic
         if on_adp_board and image_url:
@@ -313,6 +400,87 @@ def seed_all_players():
     db.get_connection().commit()
     skip_list.save()
 
+    # Process ADP board players that weren't in the scoring CSV
+    logger.info("\n" + "="*60)
+    logger.info("PROCESSING MISSING ADP BOARD PLAYERS")
+    logger.info("="*60)
+    logger.info("Checking for ADP board players not in scoring.csv...")
+
+    all_adp_players = get_all_adp_players(settings.adp_players_path)
+    missing_adp_players = {
+        name: obj for name, obj in all_adp_players.items()
+        if name not in qualified_players
+    }
+
+    logger.info(f"Found {len(missing_adp_players)} ADP board players not in scoring.csv")
+
+    stats['missing_adp_processed'] = 0
+    stats['missing_adp_added'] = 0
+    stats['missing_adp_already_exists'] = 0
+    stats['missing_adp_no_image'] = 0
+
+    for player_name, player_obj in missing_adp_players.items():
+        stats['missing_adp_processed'] += 1
+
+        # Check if player already exists in database
+        existing = repo.get_player_by_name(player_name)
+        if existing:
+            stats['missing_adp_already_exists'] += 1
+            logger.debug(f"Skipping {player_name} (already in database)")
+            continue
+
+        # Get image URL from Basketball Reference
+        image_url = br_client.get_player_image_url(player_name)
+
+        # Calculate rarity tier from ADP value
+        adp_value = player_obj.get("adp")
+        rarity_tier = player_manager.calculate_rarity_tier(adp_value) if adp_value else "Common"
+
+        if image_url:
+            # Has image - add to database with ADP rarity
+            try:
+                repo.create_player(
+                    name=player_name,
+                    adp_value=adp_value,
+                    rarity_tier=rarity_tier,
+                    image_url=image_url,
+                    career_minutes=0  # No minutes data from scoring.csv
+                )
+                stats['missing_adp_added'] += 1
+                stats['added'] += 1
+                logger.info(f"Added missing ADP player: {player_name} ({rarity_tier}, ADP: {adp_value})")
+
+            except Exception as e:
+                logger.error(f"Error adding {player_name}: {e}")
+        else:
+            # ADP board player without image - LOG and store with NULL
+            logger.error(f"MISSING ADP PLAYER WITHOUT IMAGE: {player_name}")
+            logger.error(f"   Manual intervention required!")
+
+            try:
+                repo.create_player(
+                    name=player_name,
+                    adp_value=adp_value,
+                    rarity_tier=rarity_tier,
+                    image_url=None,  # NULL - needs manual fix
+                    career_minutes=0  # No minutes data from scoring.csv
+                )
+                stats['missing_adp_no_image'] += 1
+                stats['adp_missing_image'] += 1
+                stats['added'] += 1
+
+            except Exception as e:
+                logger.error(f"Error adding {player_name}: {e}")
+
+    # Final commit for missing ADP players
+    db.get_connection().commit()
+
+    logger.info(f"\nMissing ADP board players summary:")
+    logger.info(f"  Processed: {stats['missing_adp_processed']}")
+    logger.info(f"  Added with image: {stats['missing_adp_added']}")
+    logger.info(f"  Added without image (needs manual fix): {stats['missing_adp_no_image']}")
+    logger.info(f"  Already existed: {stats['missing_adp_already_exists']}")
+
     # Print final statistics
     elapsed_time = time.time() - start_time
     logger.info("\n" + "="*60)
@@ -332,12 +500,29 @@ def seed_all_players():
         logger.error("Check logs above for player names marked with 'ADP BOARD PLAYER MISSING IMAGE'")
         logger.error("="*60)
 
+    # Cleanup ImageVerifier browser resources
+    logger.info("Closing ImageVerifier browser...")
+    await image_verifier.close()
+
     db.close()
 
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Seed database with NBA players from scoring.csv and ADP board"
+    )
+    parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="Clear all existing players before seeding (fresh start)"
+    )
+
+    args = parser.parse_args()
+
     try:
-        seed_all_players()
+        asyncio.run(seed_all_players(clear_database=args.clear))
     except KeyboardInterrupt:
         logger.info("\nSeeding interrupted by user. Progress has been saved.")
         sys.exit(0)
