@@ -57,3 +57,48 @@ class ConfigManager:
         success = self.repository.update_spawn_threshold(server_id, threshold)
 
         return {"success": success, "threshold": threshold}
+
+    def set_spawn_channels(
+        self,
+        server_id: int,
+        channel_ids: List[int]
+    ) -> Dict[str, Any]:
+        """Set spawn channels with validation.
+
+        Args:
+            server_id: Discord server ID
+            channel_ids: List of channel IDs
+
+        Returns:
+            Dictionary with success status and channel count
+
+        Raises:
+            ConfigValidationError: If channel list is invalid
+        """
+        # Validate channel count
+        if len(channel_ids) > self.MAX_SPAWN_CHANNELS:
+            raise ConfigValidationError(
+                f"Cannot configure more than {self.MAX_SPAWN_CHANNELS} spawn channels"
+            )
+
+        # Remove duplicates while preserving order
+        unique_channels = list(dict.fromkeys(channel_ids))
+
+        # Update in database
+        success = self.repository.update_spawn_channels(server_id, unique_channels)
+
+        return {
+            "success": success,
+            "channel_count": len(unique_channels)
+        }
+
+    def get_config(self, server_id: int) -> Dict[str, Any]:
+        """Get server configuration.
+
+        Args:
+            server_id: Discord server ID
+
+        Returns:
+            Server configuration dictionary
+        """
+        return self.repository.get_or_create_config(server_id)
