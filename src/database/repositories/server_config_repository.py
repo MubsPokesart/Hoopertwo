@@ -92,3 +92,30 @@ class ServerConfigRepository:
         self.connection.commit()
 
         return cursor.rowcount > 0
+
+    def update_spawn_channels(self, server_id: int, channel_ids: List[int]) -> bool:
+        """Update spawn channels for a server.
+
+        Args:
+            server_id: Discord server ID
+            channel_ids: List of channel IDs where spawns are allowed
+
+        Returns:
+            True if updated successfully
+        """
+        cursor = self.connection.cursor()
+
+        # Serialize channel IDs to JSON
+        channels_json = json.dumps(channel_ids)
+
+        cursor.execute(
+            """
+            UPDATE server_configs
+            SET spawn_channels = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE server_id = ?
+            """,
+            (channels_json, server_id)
+        )
+        self.connection.commit()
+
+        return cursor.rowcount > 0
