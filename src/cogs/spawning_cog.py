@@ -11,6 +11,7 @@ import logging
 from src.coordinators.cache_coordinator import CacheCoordinator
 from src.managers.spawn_manager import SpawnManager
 from src.managers.collection_manager import CollectionManager
+from src.managers.config_manager import ConfigManager
 from src.validators.input_validator import InputValidator, ValidationError
 from src.utils.text_normalizer import TextNormalizer
 
@@ -36,7 +37,8 @@ class SpawningCog(commands.Cog):
         bot: commands.Bot,
         cache: CacheCoordinator,
         spawn_manager: SpawnManager,
-        collection_manager: CollectionManager
+        collection_manager: CollectionManager,
+        config_manager: ConfigManager
     ):
         """Initialize spawning cog.
 
@@ -45,11 +47,13 @@ class SpawningCog(commands.Cog):
             cache: Cache coordinator for message counts and active spawns
             spawn_manager: Spawn manager for player selection
             collection_manager: Collection manager for player collections
+            config_manager: Config manager for server configuration
         """
         self.bot = bot
         self.cache = cache
         self.spawn_manager = spawn_manager
         self.collection_manager = collection_manager
+        self.config_manager = config_manager
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -62,21 +66,29 @@ class SpawningCog(commands.Cog):
         if message.author.bot:
             return
 
+        # Ignore DMs
+        if not message.guild:
+            return
+
         # Ignore commands (don't count them toward spawn threshold)
         ctx = await self.bot.get_context(message)
         if ctx.valid:
             return
 
-        # TODO: Check if channel is configured for spawning
-        # For now, spawn in all text channels
+        # Get server config
+        config = self.config_manager.get_config(message.guild.id)
+
+        # Check if spawns are allowed in this channel
+        if config["spawn_channels"]:  # If list is not empty
+            if message.channel.id not in config["spawn_channels"]:
+                return  # Skip this channel
 
         # Increment message count
         channel_id = message.channel.id
         count = self.cache.increment_message_count(channel_id)
 
-        # Check if should spawn (threshold from server config, default 500)
-        # TODO: Get threshold from server config
-        threshold = 5  # TESTING: Lowered from 500 for easy testing
+        # Get spawn threshold from config
+        threshold = config["spawn_threshold"]
 
         if count >= threshold:
             await self._trigger_spawn(message.channel)
@@ -211,7 +223,7 @@ class SpawningCog(commands.Cog):
             await ctx.send("❌ An error occurred. Please try again.", ephemeral=True)
 
 
-async def setup(bot: commands.Bot, cache, spawn_manager, collection_manager):
+async def setup(bot: commands.Bot, cache, spawn_manager, collection_manager, config_manager):
     """Load the cog.
 
     Args:
@@ -219,5 +231,6 @@ async def setup(bot: commands.Bot, cache, spawn_manager, collection_manager):
         cache: Cache coordinator instance
         spawn_manager: Spawn manager instance
         collection_manager: Collection manager instance
+        config_manager: Config manager instance
     """
-    await bot.add_cog(SpawningCog(bot, cache, spawn_manager, collection_manager))
+    await bot.add_cog(SpawningCog(bot, cache, spawn_manager, collection_manager, config_manager))
