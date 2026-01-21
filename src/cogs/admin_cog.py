@@ -109,6 +109,105 @@ class AdminCog(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(
+        name="set-spawn-channels",
+        description="Configure which channels can have player spawns"
+    )
+    @app_commands.describe(
+        channels="Channels where spawns are allowed (mention multiple with space)"
+    )
+    @commands.check(is_admin())
+    async def set_spawn_channels(
+        self,
+        interaction: discord.Interaction,
+        channels: str
+    ):
+        """Set spawn channels for the server.
+
+        Args:
+            interaction: Discord interaction
+            channels: Space-separated channel mentions
+        """
+        # Parse channel mentions
+        channel_ids = []
+        for mention in channels.split():
+            # Extract channel ID from mention <#123456>
+            if mention.startswith("<#") and mention.endswith(">"):
+                try:
+                    channel_id = int(mention[2:-1])
+                    channel_ids.append(channel_id)
+                except ValueError:
+                    pass
+
+        if not channel_ids:
+            embed = discord.Embed(
+                title="❌ No Valid Channels",
+                description="Please mention channels using #channel-name",
+                color=discord.Color.red()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        try:
+            result = self.config_manager.set_spawn_channels(
+                server_id=interaction.guild_id,
+                channel_ids=channel_ids
+            )
+
+            if result["success"]:
+                channels_list = "\n".join([f"<#{cid}>" for cid in channel_ids])
+                embed = discord.Embed(
+                    title="✅ Spawn Channels Updated",
+                    description=f"Players will spawn in these channels:\n{channels_list}",
+                    color=discord.Color.green()
+                )
+            else:
+                embed = discord.Embed(
+                    title="❌ Update Failed",
+                    description="Failed to update spawn channels",
+                    color=discord.Color.red()
+                )
+
+        except ConfigValidationError as e:
+            embed = discord.Embed(
+                title="❌ Invalid Configuration",
+                description=str(e),
+                color=discord.Color.red()
+            )
+
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(
+        name="clear-spawn-channels",
+        description="Allow spawns in all channels (remove restrictions)"
+    )
+    @commands.check(is_admin())
+    async def clear_spawn_channels(self, interaction: discord.Interaction):
+        """Clear spawn channel restrictions.
+
+        Args:
+            interaction: Discord interaction
+        """
+        result = self.config_manager.set_spawn_channels(
+            server_id=interaction.guild_id,
+            channel_ids=[]
+        )
+
+        if result["success"]:
+            embed = discord.Embed(
+                title="✅ Spawn Channels Cleared",
+                description="Players can now spawn in any channel",
+                color=discord.Color.green()
+            )
+        else:
+            embed = discord.Embed(
+                title="❌ Clear Failed",
+                description="Failed to clear spawn channels",
+                color=discord.Color.red()
+            )
+
+        await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     """Load the cog.
