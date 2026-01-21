@@ -200,6 +200,9 @@ else:
 
 ### Batch Processing (Seeder Script)
 
+The seeding script (`scripts/seed_all_players.py`) processes players in two phases:
+
+**Phase 1: Scoring CSV Processing**
 ```python
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 from src.database.repositories.player_repository import PlayerRepository
@@ -211,7 +214,7 @@ br_client = BasketballReferenceClient(
 )
 repo = PlayerRepository(connection_manager)
 
-# Process all players
+# Process all players from scoring.csv
 for player in all_players:
     # Get image URL from Basketball Reference
     image_url = br_client.get_player_image_url(player['name'])
@@ -228,11 +231,55 @@ for player in all_players:
         pass
 ```
 
+**Phase 2: Missing ADP Board Players**
+
+After processing the scoring CSV, the script checks for ADP board players not in the CSV:
+
+```python
+# Get all ADP board players
+all_adp_players = get_all_adp_players(adp_players_path)
+
+# Find players not in scoring CSV
+missing_adp_players = {
+    name: obj for name, obj in all_adp_players.items()
+    if name not in qualified_players
+}
+
+# Add missing ADP players to ensure 100% coverage
+for player_name, player_obj in missing_adp_players.items():
+    image_url = br_client.get_player_image_url(player_name)
+    rarity_tier = calculate_rarity_tier(player_obj["adp"])
+
+    repo.create_player(
+        name=player_name,
+        adp_value=player_obj["adp"],
+        rarity_tier=rarity_tier,
+        image_url=image_url,
+        career_minutes=0  # No minutes data available
+    )
+```
+
+**Running the Seeder:**
+
+```bash
+# Normal run (incremental, preserves existing players)
+poetry run python scripts/seed_all_players.py
+
+# Fresh start (clears database first)
+poetry run python scripts/seed_all_players.py --clear
+```
+
 ## ADP Board Handling Logic
 
-The seeder script implements special handling for ADP board players to ensure no data loss.
+The seeder script implements special handling for ADP board players to ensure no data loss and 100% coverage.
 
-### Three-Way Decision Logic
+### Two-Phase Processing
+
+**Phase 1: Scoring CSV Players**
+
+Players from scoring.csv (>1000 career minutes) are processed with the following logic:
+
+### Three-Way Decision Logic (Scoring CSV Players)
 
 ```python
 # Check if player is on ADP board
@@ -300,6 +347,336 @@ if not image_url:
 ```
 
 This helps identify player IDs that need manual verification.
+
+### Phase 2: Missing ADP Board Players
+
+After processing all players from the scoring CSV, the script checks for ADP board players that weren't in the CSV:
+
+```python
+# Get all ADP players (verified + estimated)
+all_adp_players = get_all_adp_players(adp_players_path)
+
+# Find players not in scoring CSV
+missing_adp_players = {
+    name: obj for name, obj in all_adp_players.items()
+    if name not in qualified_players
+}
+
+logger.info(f"Found {len(missing_adp_players)} ADP board players not in scoring.csv")
+
+# Process each missing ADP player
+for player_name, player_obj in missing_adp_players.items():
+    # Skip if already in database (e.g., manually added)
+    if repo.get_player_by_name(player_name):
+        continue
+
+    # Get image URL and ADP value
+    image_url = br_client.get_player_image_url(player_name)
+    adp_value = player_obj.get("adp")
+    rarity_tier = calculate_rarity_tier(adp_value)
+
+    # Add player with ADP rarity (even without image)
+    repo.create_player(
+        name=player_name,
+        adp_value=adp_value,
+        rarity_tier=rarity_tier,
+        image_url=image_url,  # NULL if not found
+        career_minutes=0  # No minutes data from CSV
+    )
+```
+
+**Why This Matters:**
+
+- **100% ADP Coverage**: Ensures every player on the ADP board is in the database
+- **No Manual Work**: Automatically catches players missing from scoring.csv
+- **Common Cases**:
+  - Rookies/young players with <1000 career minutes
+  - Players with incomplete stats in scoring.csv
+  - Historical players missing from the CSV
+
+**Statistics Tracked:**
+- `missing_adp_processed`: Total missing ADP players checked
+- `missing_adp_added`: Players added with valid images
+- `missing_adp_no_image`: Players added without images (flagged)
+- `missing_adp_already_exists`: Players already in database
+
+## Image Verification System
+
+Basketball Reference uses Cloudflare protection that blocks standard HTTP HEAD/GET requests for image URL verification. To bypass this, HooperTwo uses **nodriver** (lightweight Chrome automation) to verify images before adding players to the database.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│              ImageVerifier                           │
+│   Cloudflare bypass via nodriver browser             │
+└───────────────┬──────────────────────────────────────┘
+                │
+    ┌───────────▼────────────────────┐
+    │  Nodriver Browser              │
+    │  - Chrome DevTools Protocol    │
+    │  - Automatic fingerprint mask  │
+    │  - Async/await pattern         │
+    └────────────────────────────────┘
+                │
+    ┌───────────▼────────────────────┐
+    │  Basketball Reference          │
+    │  (Protected by Cloudflare)     │
+    └────────────────────────────────┘
+```
+
+### Why Nodriver?
+
+**Cloudflare Protection Issue:**
+- Standard HTTP requests (`requests`, `aiohttp`) are blocked by Cloudflare
+- HEAD requests return 403 Forbidden even with proper headers
+- Basketball Reference uses aggressive bot detection
+
+**Nodriver Solution:**
+- Lightweight successor to undetected-chromedriver (~30-50MB)
+- Direct Chrome DevTools Protocol communication (fewer automation traces)
+- Fully async for efficient resource usage
+- Automatic fingerprint masking (appears as legitimate browser to Cloudflare)
+- [Best free Cloudflare bypass solution for 2026](https://scrapfly.io/blog/posts/how-to-bypass-cloudflare-anti-scraping)
+
+**Alternatives Considered:**
+- ❌ HTTP HEAD requests: Completely blocked by Cloudflare (confirmed)
+- ❌ SeleniumBase UC Mode: Must run non-headless (visible browser), more resource-intensive
+- ❌ Playwright: Heavier (~120MB vs 30-50MB), more overhead than nodriver
+
+### ImageVerifier Class
+
+**Location:** `src/scrapers/image_verifier.py`
+
+**Core Method:**
+
+```python
+from src.scrapers.image_verifier import ImageVerifier
+
+# Initialize verifier
+verifier = ImageVerifier(rate_limit_delay=2.5)
+
+# Verify image URL (async)
+is_valid = await verifier.verify_image_url(image_url)
+
+# Cleanup
+await verifier.close()
+```
+
+**Features:**
+- **Browser Instance Reuse:** Single browser for entire batch (efficient)
+- **Rate Limiting:** 2-3 seconds between checks (configurable)
+- **Retry Logic:** Exponential backoff for transient failures (max 3 retries)
+- **404 Detection:** Checks page content for "Page Not Found (404 error)"
+- **Lazy Initialization:** Browser only starts on first verification request
+
+### Integration with Seeding Script
+
+The seeding script (`scripts/seed_all_players.py`) integrates ImageVerifier with special handling for ADP board players:
+
+```python
+# Initialize ImageVerifier
+image_verifier = ImageVerifier(rate_limit_delay=2.5)
+
+# For each player...
+image_url = br_client.get_player_image_url(player_name)
+
+# Verify image exists (unless ADP player - those skip verification)
+if image_url and not on_adp_board:
+    is_valid = asyncio.run(image_verifier.verify_image_url(image_url))
+
+    if not is_valid:
+        image_url = None  # Mark as invalid
+        skip_list.add_skipped_player(player_name, 'no_image')
+        logger.info(f"Image verification failed for {player_name}")
+
+# Cleanup at end
+asyncio.run(image_verifier.close())
+```
+
+**Key Behaviors:**
+- ✅ **Non-ADP players:** Images are verified before adding to database
+- ✅ **Invalid images:** Player added to skip list, not added to database
+- ✅ **ADP board players:** Skip verification entirely (see ADP Exception below)
+- ✅ **Skip list caching:** Invalid images cached, no re-verification on subsequent runs
+
+### ADP Exception Path
+
+**ADP board players bypass image verification entirely.** This prevents high-value players from being excluded due to image verification failures.
+
+```python
+# ADP players skip verification
+if image_url and not on_adp_board:
+    # Only verify for non-ADP players
+    is_valid = asyncio.run(image_verifier.verify_image_url(image_url))
+```
+
+**Rationale:**
+- ADP board players are high-value (rare/mythic/legendary)
+- Must be included in database even without valid images
+- Added with NULL image_url, flagged for manual fixing
+- Preserves player data for important players
+
+**ADP Player Without Image:**
+```python
+elif on_adp_board and not image_url:
+    # ADP board player WITHOUT image - LOG and store with NULL
+    logger.error(f"ADP BOARD PLAYER MISSING IMAGE: {player_name}")
+    repo.create_player(
+        name=player_name,
+        image_url=None,  # NULL - needs manual fix
+        rarity_tier=calculated_rarity,
+        career_minutes=career_minutes
+    )
+```
+
+### Skip List Caching
+
+The skip list (`data/skipped_players.json`) provides permanent caching of verification results:
+
+**First Run:**
+- All ~4000 players verified with nodriver (~3-4 hours)
+- Invalid images added to skip list with reason 'no_image'
+
+**Subsequent Runs:**
+- Skip list checked BEFORE verification
+- Cached players skip browser verification entirely
+- Only new/uncached players are verified (~minutes only)
+
+**Performance Impact:**
+```
+First run:    ~3-4 hours (2.5s per player × 4000 players)
+Second run:   ~5-10 minutes (only delta players verified)
+Third+ runs:  ~5-10 minutes (only new players verified)
+```
+
+### Rate Limiting Configuration
+
+**Default Settings:**
+```python
+ImageVerifier(rate_limit_delay=2.5)  # 2.5 seconds between requests
+```
+
+**Rationale:**
+- Balances speed vs Cloudflare safety
+- 2.5s per player = ~2.5 hours for 3600 players (first run)
+- Subsequent runs only verify new players (~minutes)
+- Conservative to avoid triggering Cloudflare rate limits
+
+**Tuning:**
+```python
+# More aggressive (use with caution)
+ImageVerifier(rate_limit_delay=1.5)  # 1.5s between requests
+
+# More conservative (safer, slower)
+ImageVerifier(rate_limit_delay=5.0)  # 5s between requests
+```
+
+### Testing
+
+**Unit Tests:** `tests/test_scrapers/test_image_verifier.py`
+
+```bash
+# Run unit tests (fast, with mocked browser)
+pytest tests/test_scrapers/test_image_verifier.py -m "not integration" -v
+
+# Run integration tests (slow, real browser + network)
+pytest tests/test_scrapers/test_image_verifier.py -m integration -v
+```
+
+**Integration Tests:** `tests/scripts/test_seed_all_players_with_verification.py`
+
+```bash
+# Test seeding script integration
+pytest tests/scripts/test_seed_all_players_with_verification.py -v
+```
+
+**Test Coverage:**
+- ✅ Valid Basketball Reference image URL → returns True
+- ✅ Invalid Basketball Reference image URL (404) → returns False
+- ✅ Rate limiting enforcement (verify delays between calls)
+- ✅ Browser instance reuse and cleanup
+- ✅ Retry logic with exponential backoff
+- ✅ ADP players skip verification
+- ✅ Skip list caching prevents re-verification
+
+### Troubleshooting
+
+#### Issue: Nodriver installation fails
+
+**Symptoms:** Import error or Chrome download fails
+
+**Solutions:**
+```bash
+# Install nodriver
+poetry add nodriver
+
+# Or with pip
+pip install nodriver
+
+# Chrome will download automatically on first run (~100MB)
+```
+
+#### Issue: Verification is very slow
+
+**Symptoms:** First run takes >4 hours
+
+**Explanation:**
+- Expected behavior for ~4000 players at 2.5s per player
+- First run always slow (must verify all images)
+- Subsequent runs are fast (skip list caching)
+
+**Solutions:**
+- ✓ Accept the first-run time (one-time operation)
+- ✓ Run in background/overnight
+- ⚠️ Reduce rate_limit_delay (increases Cloudflare block risk)
+
+#### Issue: Cloudflare blocks/challenges
+
+**Symptoms:** Browser shows Cloudflare challenge page, all verifications fail
+
+**Solutions:**
+1. **Increase rate limit delay:**
+   ```python
+   ImageVerifier(rate_limit_delay=5.0)  # More conservative
+   ```
+
+2. **Wait and retry:**
+   - Temporary block usually lifts in 30-60 minutes
+   - Run verification again later
+
+3. **Check skip list:**
+   - Review `data/skipped_players.json`
+   - Previously verified players won't be re-checked
+
+#### Issue: Browser doesn't close properly
+
+**Symptoms:** Chrome processes remain after script ends
+
+**Solutions:**
+```python
+# Always use try/finally for cleanup
+verifier = ImageVerifier()
+try:
+    result = await verifier.verify_image_url(url)
+finally:
+    await verifier.close()
+```
+
+### Best Practices
+
+**Do's:**
+- ✓ Use rate_limit_delay of 2-3 seconds minimum
+- ✓ Always call `verifier.close()` when done
+- ✓ Trust skip list caching (don't force re-verification)
+- ✓ Run first seeding overnight (takes 3-4 hours)
+- ✓ ADP players always bypass verification
+
+**Don'ts:**
+- ✗ Don't reduce rate_limit_delay below 1.5s (Cloudflare risk)
+- ✗ Don't delete skip list (forces re-verification of all players)
+- ✗ Don't verify ADP players (exception path exists for this)
+- ✗ Don't create multiple ImageVerifier instances (browser overhead)
 
 ## Integration with HooperTwo
 

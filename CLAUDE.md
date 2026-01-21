@@ -110,3 +110,4 @@ poetry run ruff check src tests
 - `src/managers/`: Business logic
 - `src/repositories/`: Database
 - `src/cogs/`: Commands
+- `src/scrapers/image_verifier.py`: Image URL verification (Cloudflare bypass via nodriver)
