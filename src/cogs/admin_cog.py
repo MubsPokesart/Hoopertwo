@@ -3,7 +3,9 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from typing import Optional, List
+from pathlib import Path
 from src.managers.config_manager import ConfigManager, ConfigValidationError
+from src.managers.backup_manager import BackupManager
 from src.utils.permission_checks import is_admin
 
 
@@ -13,15 +15,22 @@ class AdminCog(commands.Cog):
     All commands require Administrator permission.
     """
 
-    def __init__(self, bot: commands.Bot, config_manager: ConfigManager):
+    def __init__(
+        self,
+        bot: commands.Bot,
+        config_manager: ConfigManager,
+        backup_manager: BackupManager
+    ):
         """Initialize cog.
 
         Args:
             bot: Discord bot instance
             config_manager: Config manager instance
+            backup_manager: Backup manager instance
         """
         self.bot = bot
         self.config_manager = config_manager
+        self.backup_manager = backup_manager
 
     @app_commands.command(name="config", description="View current server configuration")
     @commands.check(is_admin())
@@ -207,6 +216,102 @@ class AdminCog(commands.Cog):
             )
 
         await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="backup", description="Create a manual database backup")
+    @commands.check(is_admin())
+    async def create_backup(self, interaction: discord.Interaction):
+        """Create a manual database backup.
+
+        Args:
+            interaction: Discord interaction
+        """
+        await interaction.response.defer(ephemeral=True)
+
+        try:
+            # Create backup
+            backup_path = self.backup_manager.create_backup()
+
+            if not backup_path:
+                embed = discord.Embed(
+                    title="❌ Backup Failed",
+                    description="Failed to create backup. Check bot logs.",
+                    color=discord.Color.red()
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                return
+
+            # Verify integrity
+            is_valid = self.backup_manager.verify_backup_integrity(backup_path)
+
+            if is_valid:
+                backup_file = Path(backup_path)
+                size_mb = backup_file.stat().st_size / (1024 * 1024)
+
+                embed = discord.Embed(
+                    title="✅ Backup Created",
+                    description="Database backup created successfully",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="Filename", value=backup_file.name, inline=False)
+                embed.add_field(name="Size", value=f"{size_mb:.2f} MB", inline=True)
+                embed.add_field(name="Verified", value="✓ Integrity check passed", inline=True)
+            else:
+                embed = discord.Embed(
+                    title="⚠️ Backup Created (Unverified)",
+                    description="Backup created but failed integrity check!",
+                    color=discord.Color.orange()
+                )
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+        except Exception as e:
+            embed = discord.Embed(
+                title="❌ Error",
+                description=f"Backup error: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @app_commands.command(name="list-backups", description="List available database backups")
+    @commands.check(is_admin())
+    async def list_backups(self, interaction: discord.Interaction):
+        """List all available backups.
+
+        Args:
+            interaction: Discord interaction
+        """
+        backups = self.backup_manager.list_backups()
+
+        if not backups:
+            embed = discord.Embed(
+                title="📦 Database Backups",
+                description="No backups found",
+                color=discord.Color.blue()
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        embed = discord.Embed(
+            title="📦 Database Backups",
+            description=f"Found {len(backups)} backup(s)",
+            color=discord.Color.blue()
+        )
+
+        # Show up to 10 most recent backups
+        for backup in backups[:10]:
+            size_mb = backup["size"] / (1024 * 1024)
+            created = backup["created_at"].strftime("%Y-%m-%d %H:%M:%S")
+
+            embed.add_field(
+                name=backup["filename"],
+                value=f"Size: {size_mb:.2f} MB\nCreated: {created}",
+                inline=False
+            )
+
+        if len(backups) > 10:
+            embed.set_footer(text=f"Showing 10 of {len(backups)} backups")
+
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):
