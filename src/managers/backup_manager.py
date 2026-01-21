@@ -1,8 +1,9 @@
 """Manager for database backup operations."""
 import sqlite3
 import logging
+import os
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -102,3 +103,37 @@ class BackupManager:
         finally:
             if conn:
                 conn.close()
+
+    def cleanup_old_backups(self, retention_days: int = 30) -> int:
+        """Delete backups older than retention period.
+
+        Args:
+            retention_days: Number of days to keep backups
+
+        Returns:
+            Number of backups deleted
+        """
+        try:
+            deleted_count = 0
+            cutoff_time = datetime.now() - timedelta(days=retention_days)
+            cutoff_timestamp = cutoff_time.timestamp()
+
+            # Iterate through backup files
+            for backup_file in self.backup_directory.glob("hooper_backup_*.db"):
+                # Get file modification time
+                file_mtime = os.path.getmtime(backup_file)
+
+                # Delete if older than cutoff
+                if file_mtime < cutoff_timestamp:
+                    logger.info(f"Deleting old backup: {backup_file}")
+                    backup_file.unlink()
+                    deleted_count += 1
+
+            if deleted_count > 0:
+                logger.info(f"Deleted {deleted_count} old backups")
+
+            return deleted_count
+
+        except Exception as e:
+            logger.error(f"Backup cleanup failed: {e}")
+            return 0
