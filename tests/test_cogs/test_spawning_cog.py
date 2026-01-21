@@ -83,7 +83,12 @@ def bot():
 @pytest.fixture
 def spawning_cog(bot, cache, spawn_manager):
     """Fixture for SpawningCog."""
-    return SpawningCog(bot, cache, spawn_manager)
+    from unittest.mock import MagicMock
+    collection_manager = MagicMock()
+    config_manager = MagicMock()
+    # Mock get_config to return default threshold
+    config_manager.get_config.return_value = {"spawn_threshold": 500, "spawn_channels": []}
+    return SpawningCog(bot, cache, spawn_manager, collection_manager, config_manager)
 
 
 # Test: Message Listener
