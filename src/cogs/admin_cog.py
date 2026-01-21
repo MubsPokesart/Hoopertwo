@@ -64,6 +64,51 @@ class AdminCog(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(
+        name="set-spawn-threshold",
+        description="Set how many messages trigger a spawn"
+    )
+    @app_commands.describe(threshold="Number of messages before spawn (10-10000)")
+    @commands.check(is_admin())
+    async def set_spawn_threshold(
+        self,
+        interaction: discord.Interaction,
+        threshold: app_commands.Range[int, 10, 10000]
+    ):
+        """Set spawn threshold for the server.
+
+        Args:
+            interaction: Discord interaction
+            threshold: Messages needed to trigger spawn
+        """
+        try:
+            result = self.config_manager.set_spawn_threshold(
+                server_id=interaction.guild_id,
+                threshold=threshold
+            )
+
+            if result["success"]:
+                embed = discord.Embed(
+                    title="✅ Spawn Threshold Updated",
+                    description=f"Players will now spawn after **{threshold} messages**",
+                    color=discord.Color.green()
+                )
+            else:
+                embed = discord.Embed(
+                    title="❌ Update Failed",
+                    description="Failed to update spawn threshold",
+                    color=discord.Color.red()
+                )
+
+        except ConfigValidationError as e:
+            embed = discord.Embed(
+                title="❌ Invalid Configuration",
+                description=str(e),
+                color=discord.Color.red()
+            )
+
+        await interaction.response.send_message(embed=embed)
+
 
 async def setup(bot: commands.Bot):
     """Load the cog.
