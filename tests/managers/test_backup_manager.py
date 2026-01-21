@@ -50,3 +50,37 @@ def test_create_backup(temp_database):
     row = cursor.fetchone()
     assert row[0] == "test_data"
     backup_conn.close()
+
+
+def test_verify_backup_integrity(temp_database):
+    """Test verifying backup integrity."""
+    manager = BackupManager(
+        database_path=str(temp_database["db_path"]),
+        backup_directory=str(temp_database["backup_dir"])
+    )
+
+    # Create backup
+    backup_path = manager.create_backup()
+
+    # Verify integrity
+    is_valid = manager.verify_backup_integrity(backup_path)
+
+    assert is_valid is True
+
+
+def test_verify_corrupt_backup(temp_database):
+    """Test detecting corrupted backup."""
+    manager = BackupManager(
+        database_path=str(temp_database["db_path"]),
+        backup_directory=str(temp_database["backup_dir"])
+    )
+
+    # Create a corrupted file
+    corrupt_path = temp_database["backup_dir"] / "corrupt.db"
+    with open(corrupt_path, "w") as f:
+        f.write("This is not a valid SQLite database")
+
+    # Verify should fail
+    is_valid = manager.verify_backup_integrity(str(corrupt_path))
+
+    assert is_valid is False

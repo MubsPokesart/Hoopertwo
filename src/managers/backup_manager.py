@@ -64,3 +64,41 @@ class BackupManager:
         except Exception as e:
             logger.error(f"Backup creation failed: {e}")
             return None
+
+    def verify_backup_integrity(self, backup_path: str) -> bool:
+        """Verify integrity of a backup file.
+
+        Uses SQLite's PRAGMA integrity_check.
+
+        Args:
+            backup_path: Path to backup file
+
+        Returns:
+            True if backup is valid, False otherwise
+        """
+        conn = None
+        try:
+            # Open backup database
+            conn = sqlite3.connect(backup_path)
+            cursor = conn.cursor()
+
+            # Run integrity check
+            cursor.execute("PRAGMA integrity_check")
+            result = cursor.fetchone()
+
+            # Result should be ("ok",) for valid database
+            is_valid = result and result[0] == "ok"
+
+            if is_valid:
+                logger.info(f"Backup integrity verified: {backup_path}")
+            else:
+                logger.warning(f"Backup integrity check failed: {backup_path}")
+
+            return is_valid
+
+        except Exception as e:
+            logger.error(f"Integrity verification failed for {backup_path}: {e}")
+            return False
+        finally:
+            if conn:
+                conn.close()
