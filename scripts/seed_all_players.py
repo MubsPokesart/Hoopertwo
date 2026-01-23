@@ -36,6 +36,7 @@ from src.config.settings import get_settings
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 from src.scrapers.player_stats_csv_parser import PlayerStatsCSVParser
 from src.scrapers.image_verifier import ImageVerifier
+from src.scrapers.basketball_reference_searcher import BasketballReferenceSearcher
 from src.managers.player_manager import PlayerManager
 
 # Configure logging
@@ -251,6 +252,10 @@ async def seed_all_players(clear_database: bool = False):
     logger.info("Initializing ImageVerifier (nodriver browser for Cloudflare bypass)...")
     image_verifier = ImageVerifier(rate_limit_delay=2.5)
 
+    # Initialize BasketballReferenceSearcher for collision resolution
+    logger.info("Initializing BasketballReferenceSearcher for player ID collision resolution...")
+    br_searcher = BasketballReferenceSearcher(rate_limit_delay=2.5)
+
     # Initialize skip list manager
     skip_list_path = Path("data/skipped_players.json")
     skip_list = SkipListManager(skip_list_path)
@@ -306,8 +311,13 @@ async def seed_all_players(clear_database: bool = False):
         # Check if player is on ADP board
         on_adp_board = is_on_adp_board(player_name, settings.adp_players_path)
 
-        # Get image URL from Basketball Reference
-        image_url = br_client.get_player_image_url(player_name)
+        # Get image URL from Basketball Reference with year range for collision resolution
+        year_range = (player_stats.year_start, player_stats.year_end)
+        image_url = await br_client.get_player_image_url(
+            player_name,
+            year_range=year_range,
+            searcher=br_searcher
+        )
 
         # Verify image exists (unless ADP player - those skip verification)
         # ADP players are added even without valid images and flagged for manual fixing
@@ -430,7 +440,12 @@ async def seed_all_players(clear_database: bool = False):
             continue
 
         # Get image URL from Basketball Reference
-        image_url = br_client.get_player_image_url(player_name)
+        # Note: Missing ADP players don't have year ranges from CSV, so pass None
+        image_url = await br_client.get_player_image_url(
+            player_name,
+            year_range=None,
+            searcher=br_searcher
+        )
 
         # Calculate rarity tier from ADP value
         adp_value = player_obj.get("adp")
@@ -500,9 +515,12 @@ async def seed_all_players(clear_database: bool = False):
         logger.error("Check logs above for player names marked with 'ADP BOARD PLAYER MISSING IMAGE'")
         logger.error("="*60)
 
-    # Cleanup ImageVerifier browser resources
+    # Cleanup browser resources
     logger.info("Closing ImageVerifier browser...")
     await image_verifier.close()
+
+    logger.info("Closing BasketballReferenceSearcher browser...")
+    await br_searcher.close()
 
     db.close()
 
