@@ -119,6 +119,8 @@ def test_parse_single_player_single_season(temp_csv_single_player):
     assert lebron.total_minutes == 2316
     assert lebron.nba_id == 2544
     assert lebron.seasons_played == 1
+    assert lebron.year_start == 2004
+    assert lebron.year_end == 2004
 
 
 def test_aggregate_multiple_seasons(temp_csv_multiple_seasons):
@@ -138,6 +140,8 @@ def test_aggregate_multiple_seasons(temp_csv_multiple_seasons):
     assert lebron.total_minutes == 7957  # 2316 + 2451 + 3190
     assert lebron.nba_id == 2544
     assert lebron.seasons_played == 3
+    assert lebron.year_start == 2004
+    assert lebron.year_end == 2006
 
 
 def test_filter_by_minimum_minutes(temp_csv_with_below_threshold):
@@ -230,3 +234,63 @@ def test_parse_decimal_format_minutes(temp_csv_decimal_minutes):
     # Verify Kobe with decimal '3277.5' → 3277 (truncated)
     kobe = players['Kobe Bryant']
     assert kobe.total_minutes == 3277
+
+
+def test_year_range_extraction_single_season(temp_csv_single_player):
+    """Test that year_start and year_end are extracted correctly for single season."""
+    parser = PlayerStatsCSVParser(
+        csv_path=temp_csv_single_player,
+        min_career_minutes=1000
+    )
+
+    players = parser.parse_players()
+    lebron = players['LeBron James']
+
+    assert lebron.year_start == 2004
+    assert lebron.year_end == 2004
+
+
+def test_year_range_extraction_multiple_seasons(temp_csv_multiple_seasons):
+    """Test that year_start and year_end span multiple seasons correctly."""
+    parser = PlayerStatsCSVParser(
+        csv_path=temp_csv_multiple_seasons,
+        min_career_minutes=1000
+    )
+
+    players = parser.parse_players()
+    lebron = players['LeBron James']
+
+    # Seasons: 2004, 2005, 2006
+    assert lebron.year_start == 2004
+    assert lebron.year_end == 2006
+
+
+@pytest.fixture
+def temp_csv_non_contiguous_years(tmp_path):
+    """Create temporary CSV with non-contiguous years."""
+    csv_path = tmp_path / "test_scoring.csv"
+
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['Player', 'TS%', 'PTS', 'MP', 'Tm', 'G', 'year', 'nba_id'])
+        # Player with gap years: 1995, 2001, 2002
+        writer.writerow(['Michael Jordan', '0.588', '27.1', '1000', 'CHI', '79', '1995', '893'])
+        writer.writerow(['Michael Jordan', '0.568', '27.2', '1000', 'WAS', '80', '2001', '893'])
+        writer.writerow(['Michael Jordan', '0.552', '31.4', '1000', 'WAS', '79', '2002', '893'])
+
+    return str(csv_path)
+
+
+def test_year_range_extraction_non_contiguous(temp_csv_non_contiguous_years):
+    """Test that year range uses min/max, not just contiguous years."""
+    parser = PlayerStatsCSVParser(
+        csv_path=temp_csv_non_contiguous_years,
+        min_career_minutes=1000
+    )
+
+    players = parser.parse_players()
+    mj = players['Michael Jordan']
+
+    # Should span 1995-2002, even though no data for 1996-2000
+    assert mj.year_start == 1995
+    assert mj.year_end == 2002

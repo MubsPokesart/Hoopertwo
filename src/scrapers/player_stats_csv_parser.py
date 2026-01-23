@@ -15,6 +15,8 @@ class PlayerStats:
     total_minutes: int
     nba_id: Optional[int]
     seasons_played: int
+    year_start: int
+    year_end: int
 
 
 class PlayerStatsCSVParser:
@@ -40,7 +42,8 @@ class PlayerStatsCSVParser:
         player_data = defaultdict(lambda: {
             'minutes': 0,
             'seasons': 0,
-            'nba_id': None
+            'nba_id': None,
+            'years': []
         })
 
         with open(self.csv_path, 'r', encoding='utf-8') as f:
@@ -68,20 +71,34 @@ class PlayerStatsCSVParser:
                     logger.debug(f"Invalid nba_id for {player_name}, storing as None")
                     nba_id = None
 
+                # Parse year - skip row if invalid
+                try:
+                    year = int(row['year'])
+                except (ValueError, KeyError) as e:
+                    logger.warning(f"Skipping row for {player_name}: invalid year value - {e}")
+                    continue
+
                 # Aggregate minutes and count seasons
                 player_data[player_name]['minutes'] += minutes
                 player_data[player_name]['seasons'] += 1
                 player_data[player_name]['nba_id'] = nba_id
+                player_data[player_name]['years'].append(year)
 
         # Convert aggregated data to PlayerStats objects, filtering by minimum minutes
         players = {}
         for name, data in player_data.items():
             if data['minutes'] >= self.min_career_minutes:
+                # Calculate year range from collected years
+                year_start = min(data['years']) if data['years'] else 0
+                year_end = max(data['years']) if data['years'] else 0
+
                 players[name] = PlayerStats(
                     name=name,
                     total_minutes=data['minutes'],
                     nba_id=data['nba_id'],
-                    seasons_played=data['seasons']
+                    seasons_played=data['seasons'],
+                    year_start=year_start,
+                    year_end=year_end
                 )
 
         return players

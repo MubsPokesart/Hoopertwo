@@ -7,7 +7,7 @@ player IDs. Primary source for all player images in HooperTwo.
 import logging
 import json
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -68,36 +68,124 @@ class BasketballReferenceClient:
         )
         return self._player_id_cache
 
-    def find_player_id(self, player_name: str) -> Optional[str]:
+    async def find_player_id(
+        self,
+        player_name: str,
+        year_range: Optional[Tuple[int, int]] = None,
+        searcher: Optional['BasketballReferenceSearcher'] = None
+    ) -> Optional[str]:
         """Find Basketball Reference player ID by name.
 
-        Searches verified IDs first, then estimated IDs.
+        4-tier lookup system:
+        1. Verified database (highest confidence)
+        2. Estimated database
+        3. Generated ID with collision check
+        4. Basketball Reference search (if collision detected and searcher provided)
 
         Args:
             player_name: Full player name (e.g., "LeBron James")
+            year_range: Optional tuple of (year_start, year_end) for collision resolution
+            searcher: Optional BasketballReferenceSearcher instance for collision resolution
 
         Returns:
             Player ID (e.g., "jamesle01") or None if not found
         """
         db = self._load_player_id_database()
 
-        # Check verified IDs first
+        # Tier 1: Check verified IDs first
         if player_name in db["verified"]:
             return db["verified"][player_name]["player_id"]
 
-        # Check estimated IDs
+        # Tier 2: Check estimated IDs
         if player_name in db["estimated"]:
             logger.debug(f"Using estimated ID for {player_name}")
             return db["estimated"][player_name]["player_id"]
-        
-        generated_player_id = self.generate_player_id(player_name) 
+
+        # Tier 3: Generate ID and check for collisions
+        generated_player_id = self.generate_player_id(player_name)
         if generated_player_id:
-            logger.debug(f"Used Basketball Reference naming convention for {player_name}: {generated_player_id}")
+            # Check if this generated ID might collide with another player
+            has_collision = self._has_collision(player_name, generated_player_id)
+
+            if has_collision:
+                logger.warning(
+                    f"Collision detected for {player_name} -> {generated_player_id}"
+                )
+
+                # Tier 4: Use searcher to resolve collision if available
+                if searcher and year_range:
+                    logger.info(
+                        f"Searching Basketball Reference to resolve collision for {player_name}"
+                    )
+                    try:
+                        searched_id = await searcher.search_player_by_name_and_years(
+                            player_name, year_range[0], year_range[1]
+                        )
+                        if searched_id:
+                            logger.info(
+                                f"Resolved collision via search: {player_name} -> {searched_id}"
+                            )
+                            return searched_id
+                        else:
+                            logger.warning(
+                                f"Search failed to resolve collision for {player_name}, "
+                                f"using generated ID: {generated_player_id}"
+                            )
+                    except Exception as e:
+                        logger.error(
+                            f"Error during collision resolution search for {player_name}: {e}"
+                        )
+                        # Fallback to generated ID
+                else:
+                    logger.warning(
+                        f"Collision detected but no searcher/year_range provided, "
+                        f"using generated ID: {generated_player_id}"
+                    )
+
+            logger.debug(
+                f"Using Basketball Reference naming convention for {player_name}: "
+                f"{generated_player_id}"
+            )
             return generated_player_id
 
         logger.warning(f"No player ID found for {player_name}")
         return None
     
+    def _has_collision(self, player_name: str, generated_id: str) -> bool:
+        """Check if generated ID might collide with another player.
+
+        A collision occurs when the same ID is already associated with a different
+        player name in the verified or estimated databases.
+
+        Args:
+            player_name: Player name being checked
+            generated_id: Generated Basketball Reference ID
+
+        Returns:
+            True if collision detected, False otherwise
+        """
+        db = self._load_player_id_database()
+
+        # Check both verified and estimated categories
+        for category in ['verified', 'estimated']:
+            if category not in db:
+                continue
+
+            for name, data in db[category].items():
+                # Skip if it's the same player
+                if name == player_name:
+                    continue
+
+                # Check if same ID is used for different player
+                if data.get('player_id') == generated_id:
+                    logger.debug(
+                        f"Collision detected: {player_name} -> {generated_id} "
+                        f"conflicts with {name}"
+                    )
+                    return True
+
+        return False
+
     def generate_player_id(self, player_name: str) -> str:
         """
         Generate Basketball Reference player ID using their naming convention.
@@ -152,7 +240,12 @@ class BasketballReferenceClient:
         """
         return f"https://www.basketball-reference.com/req/202106291/images/headshots/{player_id}.jpg"
 
-    def get_player_image_url(self, player_name: str) -> Optional[str]:
+    async def get_player_image_url(
+        self,
+        player_name: str,
+        year_range: Optional[Tuple[int, int]] = None,
+        searcher: Optional['BasketballReferenceSearcher'] = None
+    ) -> Optional[str]:
         """Get player image URL by name.
 
         NOTE: Returns constructed URL without verification due to Cloudflare protection.
@@ -160,12 +253,14 @@ class BasketballReferenceClient:
 
         Args:
             player_name: Full player name
+            year_range: Optional tuple of (year_start, year_end) for collision resolution
+            searcher: Optional BasketballReferenceSearcher instance for collision resolution
 
         Returns:
             Image URL if player ID found, None otherwise
         """
         # Look up player ID from database
-        player_id = self.find_player_id(player_name)
+        player_id = await self.find_player_id(player_name, year_range, searcher)
         if not player_id:
             logger.warning(f"No player ID found for {player_name}")
             return None

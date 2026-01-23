@@ -2,7 +2,7 @@
 import pytest
 import json
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 from src.scrapers.basketball_reference_client import BasketballReferenceClient
 
 
@@ -59,30 +59,34 @@ def test_client_initialization(br_client):
     assert br_client.player_id_db_path is not None
 
 
-def test_find_player_id_verified(br_client):
+@pytest.mark.asyncio
+async def test_find_player_id_verified(br_client):
     """Test finding verified player ID."""
-    player_id = br_client.find_player_id("Michael Jordan")
+    player_id = await br_client.find_player_id("Michael Jordan")
     assert player_id == "jordami01"
 
-    player_id = br_client.find_player_id("LeBron James")
+    player_id = await br_client.find_player_id("LeBron James")
     assert player_id == "jamesle01"
 
 
-def test_find_player_id_estimated(br_client):
+@pytest.mark.asyncio
+async def test_find_player_id_estimated(br_client):
     """Test finding estimated player ID."""
-    player_id = br_client.find_player_id("Test Player")
+    player_id = await br_client.find_player_id("Test Player")
     assert player_id == "playette01"
 
 
-def test_find_player_id_not_found(br_client):
+@pytest.mark.asyncio
+async def test_find_player_id_not_found(br_client):
     """Test handling of player not in database - returns generated ID."""
     # Two-word names will generate an ID using Basketball Reference convention
-    player_id = br_client.find_player_id("Nonexistent Player")
+    player_id = await br_client.find_player_id("Nonexistent Player")
     assert player_id == "playeno01"  # Generated: playe(5) + no(2) + 01
 
-def test_find_player_id_single_name(br_client):
+@pytest.mark.asyncio
+async def test_find_player_id_single_name(br_client):
     """Test that single-word names can't generate an ID."""
-    player_id = br_client.find_player_id("Madonna")
+    player_id = await br_client.find_player_id("Madonna")
     assert player_id is None
 
 
@@ -104,19 +108,21 @@ def test_construct_image_url(br_client):
     assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jamesle01.jpg"
 
 
-def test_get_player_image_url_verified(br_client):
+@pytest.mark.asyncio
+async def test_get_player_image_url_verified(br_client):
     """Test getting image URL for verified player (no verification)."""
-    url = br_client.get_player_image_url("Michael Jordan")
+    url = await br_client.get_player_image_url("Michael Jordan")
     assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg"
 
 
-def test_get_player_image_url_not_found(br_client):
+@pytest.mark.asyncio
+async def test_get_player_image_url_not_found(br_client):
     """Test getting image URL for player not in database.
 
     Since the client now auto-generates IDs using Basketball Reference
     naming convention, it should return an estimated URL even for unknown players.
     """
-    url = br_client.get_player_image_url("Unknown Player")
+    url = await br_client.get_player_image_url("Unknown Player")
 
     # Should generate URL using BR naming convention: playeun01
     assert url is not None
@@ -144,5 +150,147 @@ def test_missing_database_file():
 
     assert db["verified"] == {}
     assert db["estimated"] == {}
+
+
+# Collision Detection Tests
+
+@pytest.fixture
+def temp_player_db_with_collision(tmp_path):
+    """Create temporary player ID database with collision case."""
+    db_path = tmp_path / "test_player_ids_collision.json"
+
+    test_db = {
+        "verified": {
+            "Mikal Bridges": {
+                "player_id": "bridgmi01",
+                "adp": 45.0,
+                "url": "https://www.basketball-reference.com/players/b/bridgmi01.html"
+            }
+        },
+        "estimated": {},
+        "needs_verification": []
+    }
+
+    with open(db_path, 'w', encoding='utf-8') as f:
+        json.dump(test_db, f, indent=2)
+
+    return str(db_path)
+
+
+def test_has_collision_detects_conflict(temp_player_db_with_collision):
+    """Test collision detection when generated ID conflicts with existing player."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Miles Bridges generates 'bridgmi01', which conflicts with Mikal Bridges
+    has_collision = client._has_collision("Miles Bridges", "bridgmi01")
+    assert has_collision is True
+
+
+def test_has_collision_no_conflict(temp_player_db_with_collision):
+    """Test collision detection when no conflict exists."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # LeBron James generates 'jamesle01', no conflict
+    has_collision = client._has_collision("LeBron James", "jamesle01")
+    assert has_collision is False
+
+
+def test_has_collision_same_player_no_conflict(temp_player_db_with_collision):
+    """Test collision detection doesn't flag same player."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Mikal Bridges with his own ID should not be a collision
+    has_collision = client._has_collision("Mikal Bridges", "bridgmi01")
+    assert has_collision is False
+
+
+@pytest.mark.asyncio
+async def test_find_player_id_without_collision(br_client):
+    """Test finding player ID when no collision detected."""
+    player_id = await br_client.find_player_id("Michael Jordan")
+    assert player_id == "jordami01"
+
+
+@pytest.mark.asyncio
+async def test_find_player_id_with_collision_no_searcher(temp_player_db_with_collision):
+    """Test finding player ID with collision but no searcher provided (fallback to generated)."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Miles Bridges generates 'bridgmi01' which collides with Mikal, but no searcher
+    player_id = await client.find_player_id("Miles Bridges")
+
+    # Should return generated ID with warning (fallback behavior)
+    assert player_id == "bridgmi01"
+
+
+@pytest.mark.asyncio
+async def test_find_player_id_with_collision_and_searcher(temp_player_db_with_collision):
+    """Test collision resolution with searcher."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Mock searcher that returns correct ID for Miles Bridges
+    mock_searcher = AsyncMock()
+    mock_searcher.search_player_by_name_and_years = AsyncMock(return_value="bridgmi02")
+
+    # Miles Bridges with year range and searcher
+    player_id = await client.find_player_id(
+        "Miles Bridges",
+        year_range=(2019, 2025),
+        searcher=mock_searcher
+    )
+
+    # Should return searched ID (bridgmi02) instead of generated (bridgmi01)
+    assert player_id == "bridgmi02"
+    mock_searcher.search_player_by_name_and_years.assert_called_once_with(
+        "Miles Bridges", 2019, 2025
+    )
+
+
+@pytest.mark.asyncio
+async def test_find_player_id_collision_search_fails(temp_player_db_with_collision):
+    """Test collision resolution when search fails (fallback to generated)."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Mock searcher that returns None (search failed)
+    mock_searcher = AsyncMock()
+    mock_searcher.search_player_by_name_and_years = AsyncMock(return_value=None)
+
+    player_id = await client.find_player_id(
+        "Miles Bridges",
+        year_range=(2019, 2025),
+        searcher=mock_searcher
+    )
+
+    # Should fallback to generated ID with warning
+    assert player_id == "bridgmi01"
+
+
+@pytest.mark.asyncio
+async def test_get_player_image_url_with_year_range(br_client):
+    """Test getting image URL with year range parameter."""
+    url = await br_client.get_player_image_url(
+        "Michael Jordan",
+        year_range=(1984, 2003)
+    )
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg"
+
+
+@pytest.mark.asyncio
+async def test_get_player_image_url_collision_resolution(temp_player_db_with_collision):
+    """Test getting image URL with collision resolution."""
+    client = BasketballReferenceClient(player_id_db_path=temp_player_db_with_collision)
+
+    # Mock searcher
+    mock_searcher = AsyncMock()
+    mock_searcher.search_player_by_name_and_years = AsyncMock(return_value="bridgmi02")
+
+    url = await client.get_player_image_url(
+        "Miles Bridges",
+        year_range=(2019, 2025),
+        searcher=mock_searcher
+    )
+
+    # Should use searched ID (bridgmi02)
+    assert url == "https://www.basketball-reference.com/req/202106291/images/headshots/bridgmi02.jpg"
 
 
