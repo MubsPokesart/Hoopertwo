@@ -25,7 +25,8 @@
       "Bash(bot)",
       "Bash(./venv/Scripts/python.exe -m pytest tests/test_scrapers/ -v --tb=line)",
       "Bash(./venv/Scripts/python.exe:*)",
-      "mcp__filesystem__read_text_file"
+      "mcp__filesystem__read_text_file",
+      "Bash(python3 -m py_compile:*)"
     ]
   }
 }
