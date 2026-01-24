@@ -127,6 +127,7 @@ class SpawningCog(commands.Cog):
                 "Legendary": discord.Color.orange(),
                 "Epic": discord.Color.blue(),
                 "Rare": discord.Color.green(),
+                "Uncommon": discord.Color.greyple(),
                 "Common": discord.Color.light_grey(),
             }
             embed.color = rarity_colors.get(player["rarity_tier"], discord.Color.gold())

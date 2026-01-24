@@ -9,6 +9,7 @@ RARITY_POINTS = {
     "Legendary": 250,
     "Epic": 100,
     "Rare": 50,
+    "Uncommon": 25,
     "Common": 10
 }
 
@@ -178,6 +179,7 @@ class CollectionRepository:
                         WHEN 'Legendary' THEN 250
                         WHEN 'Epic' THEN 100
                         WHEN 'Rare' THEN 50
+                        WHEN 'Uncommon' THEN 25
                         WHEN 'Common' THEN 10
                         ELSE 0
                     END

@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     adp_value REAL,
-    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Common')),
+    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common')),
     image_url TEXT,
     career_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

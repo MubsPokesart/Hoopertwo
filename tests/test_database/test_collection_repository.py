@@ -130,3 +130,19 @@ def test_get_collection_stats(db_connection):
     assert "GOAT" in stats["rarity_counts"]
     assert stats["rarity_counts"]["GOAT"] == 1
     assert stats["rarity_counts"]["Mythic"] == 1
+
+
+def test_get_collection_stats_uncommon(db_connection):
+    """Test collection stats with Uncommon tier players."""
+    db_connection.execute(
+        "INSERT INTO players (name, adp_value, rarity_tier) VALUES (?, ?, ?)",
+        ("Vlade Divac", 258.36, "Uncommon")
+    )
+    db_connection.commit()
+
+    repo = CollectionRepository(db_connection)
+    repo.add_player_to_collection(123456789, 2, 987654321)
+
+    stats = repo.get_collection_stats(123456789, 987654321)
+    assert stats["rarity_counts"]["Uncommon"] == 1
+    assert stats["total_points"] == 25  # Verify 25 points for Uncommon

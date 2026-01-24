@@ -14,12 +14,13 @@ class SpawnManager:
 
     # Spawn weights (higher = more common)
     RARITY_WEIGHTS = {
-        "GOAT": 1,
-        "Mythic": 5,
-        "Legendary": 15,
-        "Epic": 30,
-        "Rare": 50,
-        "Common": 100,
+        "GOAT": 1,        # 0.1% spawn rate
+        "Mythic": 4,      # 0.4% spawn rate
+        "Legendary": 20,  # 2.0% spawn rate
+        "Epic": 75,       # 7.5% spawn rate
+        "Rare": 100,      # 10.0% spawn rate
+        "Uncommon": 150,  # 15.0% spawn rate
+        "Common": 650,    # 65.0% spawn rate
     }
 
     def __init__(self, player_repository: PlayerRepository):
@@ -44,6 +45,10 @@ class SpawnManager:
     def select_random_player(self) -> Dict[str, Any]:
         """Select a random player weighted by rarity.
 
+        Two-step process:
+        1. Select a rarity tier based on tier weights
+        2. Randomly select a player from that tier
+
         Returns:
             Player dictionary
         """
@@ -52,12 +57,19 @@ class SpawnManager:
         if not all_players:
             raise ValueError("No players in database")
 
-        # Calculate weights for each player
-        weights = [
-            self._calculate_spawn_weight(player["rarity_tier"])
-            for player in all_players
-        ]
+        # Group players by rarity tier
+        players_by_tier = {}
+        for player in all_players:
+            tier = player["rarity_tier"]
+            if tier not in players_by_tier:
+                players_by_tier[tier] = []
+            players_by_tier[tier].append(player)
 
-        # Select random player using weights
-        selected = random.choices(all_players, weights=weights, k=1)[0]
+        # Step 1: Select a rarity tier weighted by tier weights
+        tiers = list(players_by_tier.keys())
+        tier_weights = [self._calculate_spawn_weight(tier) for tier in tiers]
+        selected_tier = random.choices(tiers, weights=tier_weights, k=1)[0]
+
+        # Step 2: Randomly select a player from that tier (equal probability)
+        selected = random.choice(players_by_tier[selected_tier])
         return selected

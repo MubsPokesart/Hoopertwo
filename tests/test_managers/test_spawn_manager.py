@@ -18,6 +18,7 @@ def temp_db(tmp_path):
     repo.create_player("LBJ", 1.5, "GOAT", None)
     repo.create_player("Curry", 5.0, "Mythic", None)
     repo.create_player("Durant", 10.0, "Mythic", None)
+    repo.create_player("Uncommon1", 260.0, "Uncommon", None)
     repo.create_player("Common1", None, "Common", None)
     repo.create_player("Common2", None, "Common", None)
     repo.create_player("Common3", None, "Common", None)
@@ -61,10 +62,16 @@ def test_calculate_spawn_weight_goat(spawn_manager):
     assert weight == 1  # Lowest weight = rarest
 
 
+def test_calculate_spawn_weight_uncommon(spawn_manager):
+    """Test spawn weight for Uncommon tier."""
+    weight = spawn_manager._calculate_spawn_weight("Uncommon")
+    assert weight == 150
+
+
 def test_calculate_spawn_weight_common(spawn_manager):
     """Test spawn weight for Common tier."""
     weight = spawn_manager._calculate_spawn_weight("Common")
-    assert weight == 100  # Highest weight = most common
+    assert weight == 650  # Highest weight = most common
 
 
 def test_calculate_spawn_weight_tiers(spawn_manager):
@@ -74,7 +81,8 @@ def test_calculate_spawn_weight_tiers(spawn_manager):
     legendary = spawn_manager._calculate_spawn_weight("Legendary")
     epic = spawn_manager._calculate_spawn_weight("Epic")
     rare = spawn_manager._calculate_spawn_weight("Rare")
+    uncommon = spawn_manager._calculate_spawn_weight("Uncommon")
     common = spawn_manager._calculate_spawn_weight("Common")
 
     # Weights should increase (more common = higher weight)
-    assert goat < mythic < legendary < epic < rare < common
+    assert goat < mythic < legendary < epic < rare < uncommon < common

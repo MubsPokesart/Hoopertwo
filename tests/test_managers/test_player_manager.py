@@ -77,10 +77,16 @@ def test_calculate_rarity_tier_rare(player_manager):
     assert player_manager.calculate_rarity_tier(255.99) == "Rare"
 
 
+def test_calculate_rarity_tier_uncommon(player_manager):
+    """Test rarity calculation for Uncommon tier (ADP >= 256)."""
+    assert player_manager.calculate_rarity_tier(256.0) == "Uncommon"
+    assert player_manager.calculate_rarity_tier(260.0) == "Uncommon"
+    assert player_manager.calculate_rarity_tier(1000.0) == "Uncommon"
+
+
 def test_calculate_rarity_tier_common(player_manager):
-    """Test rarity calculation for Common tier (ADP >= 256 or None)."""
-    assert player_manager.calculate_rarity_tier(256.0) == "Common"
-    assert player_manager.calculate_rarity_tier(1000.0) == "Common"
+    """Test rarity calculation for Common tier (no ADP value)."""
+    # Only None should return Common now
     assert player_manager.calculate_rarity_tier(None) == "Common"
 
 
@@ -110,4 +116,4 @@ def test_load_adp_board(player_manager):
     assert random["rarity_tier"] == "Rare"
 
     bench = player_manager.repository.get_player_by_name("Bench Warmer")
-    assert bench["rarity_tier"] == "Common"
+    assert bench["rarity_tier"] == "Uncommon"

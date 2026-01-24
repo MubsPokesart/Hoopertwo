@@ -23,6 +23,7 @@ class PlayerManager:
     LEGENDARY_THRESHOLD = 64.0
     EPIC_THRESHOLD = 128.0
     RARE_THRESHOLD = 256.0
+    UNCOMMON_THRESHOLD = 256.0
 
     def __init__(self, repository: PlayerRepository, adp_csv_path: str):
         """Initialize player manager.
@@ -43,7 +44,8 @@ class PlayerManager:
         - Legendary: 32 <= ADP < 64
         - Epic: 64 <= ADP < 128
         - Rare: 128 <= ADP < 256
-        - Common: ADP >= 256 or no ADP value
+        - Uncommon: ADP >= 256 (on ADP board)
+        - Common: No ADP value (not on ADP board)
 
         Args:
             adp_value: Average draft position value (None for non-ADP players)
@@ -51,8 +53,10 @@ class PlayerManager:
         Returns:
             Rarity tier string
         """
-        if adp_value is None or adp_value >= self.RARE_THRESHOLD:
+        if adp_value is None:
             return "Common"
+        elif adp_value >= self.UNCOMMON_THRESHOLD:
+            return "Uncommon"
         elif adp_value < self.GOAT_THRESHOLD:
             return "GOAT"
         elif adp_value < self.MYTHIC_THRESHOLD:
