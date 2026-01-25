@@ -51,7 +51,8 @@ class CollectionManager:
         user_id: int,
         server_id: int,
         page: int = 0,
-        page_size: int = 10
+        page_size: int = 10,
+        sort_by: str = "time_new"
     ) -> Dict[str, Any]:
         """Get a user's collection with pagination and stats.
 
@@ -60,6 +61,7 @@ class CollectionManager:
             server_id: Discord server ID
             page: Page number (0-indexed)
             page_size: Number of players per page
+            sort_by: Sort order - "time_new", "time_old", "rarity_best", "rarity_common"
 
         Returns:
             Dictionary with players, stats, and pagination info
@@ -71,7 +73,7 @@ class CollectionManager:
         # Get players for current page
         offset = page * page_size
         players = self.repository.get_user_collection(
-            user_id, server_id, limit=page_size, offset=offset
+            user_id, server_id, limit=page_size, offset=offset, sort_by=sort_by
         )
 
         return {

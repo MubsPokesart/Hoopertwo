@@ -25,6 +25,7 @@ class CollectionView(discord.ui.View):
         user_id: int,
         server_id: int,
         page_size: int = 9,
+        sort_by: str = "time_new",
         timeout: float = 180.0
     ):
         """Initialize pagination view.
@@ -37,6 +38,7 @@ class CollectionView(discord.ui.View):
             user_id: Discord user ID
             server_id: Discord server ID
             page_size: Number of players per page
+            sort_by: Current sort order
             timeout: Seconds before view times out (default 180)
         """
         super().__init__(timeout=timeout)
@@ -47,6 +49,7 @@ class CollectionView(discord.ui.View):
         self.user_id = user_id
         self.server_id = server_id
         self.page_size = page_size
+        self.sort_by = sort_by
         self.current_page = collection_data["current_page"]
         self.total_pages = collection_data["total_pages"]
         self.message: Optional[discord.Message] = None
@@ -92,17 +95,19 @@ class CollectionView(discord.ui.View):
             user_id=self.user_id,
             server_id=self.server_id,
             page=self.current_page,
-            page_size=self.page_size
+            page_size=self.page_size,
+            sort_by=self.sort_by
         )
+        self.total_pages = self.collection_data["total_pages"]
 
     def _update_buttons(self):
         """Update button disabled states based on current page."""
-        # Get buttons
-        first_button = self.children[0]
-        prev_button = self.children[1]
-        page_button = self.children[2]
-        next_button = self.children[3]
-        last_button = self.children[4]
+        # Get buttons (skip first element which is the select menu)
+        first_button = self.children[1]
+        prev_button = self.children[2]
+        page_button = self.children[3]
+        next_button = self.children[4]
+        last_button = self.children[5]
 
         # Disable first/prev if on first page
         first_button.disabled = self.current_page == 0
@@ -114,6 +119,44 @@ class CollectionView(discord.ui.View):
 
         # Update page indicator
         page_button.label = f"Page {self.current_page + 1}/{self.total_pages}"
+
+    @discord.ui.select(
+        placeholder="Sort by...",
+        custom_id="sort_select",
+        options=[
+            discord.SelectOption(
+                label="Time Caught (Newest)",
+                value="time_new",
+                description="Sort by most recently caught",
+                emoji="🕐"
+            ),
+            discord.SelectOption(
+                label="Time Caught (Oldest)",
+                value="time_old",
+                description="Sort by first caught",
+                emoji="🕰️"
+            ),
+            discord.SelectOption(
+                label="Rarity (Best First)",
+                value="rarity_best",
+                description="Sort by rarest players first",
+                emoji="💎"
+            ),
+            discord.SelectOption(
+                label="Rarity (Common First)",
+                value="rarity_common",
+                description="Sort by most common players first",
+                emoji="📊"
+            )
+        ]
+    )
+    async def sort_select(self, interaction: discord.Interaction, select: discord.ui.Select):
+        """Handle sort selection changes."""
+        self.sort_by = select.values[0]
+        self.current_page = 0  # Reset to first page when changing sort
+        self._fetch_page_data()
+        self._update_buttons()
+        await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
     @discord.ui.button(label="⏮️ First", style=discord.ButtonStyle.gray, custom_id="first")
     async def first_page(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -190,13 +233,15 @@ class CollectionCog(commands.Cog):
         # Default to command user
         target_user = user or interaction.user
         page_size = 9  # 3x3 grid in embed
+        sort_by = "time_new"  # Default sort
 
         # Get collection data
         collection_data = self.collection_manager.get_collection(
             user_id=target_user.id,
             server_id=interaction.guild_id,
             page=0,
-            page_size=page_size
+            page_size=page_size,
+            sort_by=sort_by
         )
 
         # Create view
@@ -207,7 +252,8 @@ class CollectionCog(commands.Cog):
             collection_manager=self.collection_manager,
             user_id=target_user.id,
             server_id=interaction.guild_id,
-            page_size=page_size
+            page_size=page_size,
+            sort_by=sort_by
         )
 
         # Send initial message

@@ -68,7 +68,8 @@ class CollectionRepository:
         user_id: int,
         server_id: int,
         limit: Optional[int] = None,
-        offset: int = 0
+        offset: int = 0,
+        sort_by: str = "time_new"
     ) -> List[Dict[str, Any]]:
         """Get a user's collection with player details.
 
@@ -77,13 +78,44 @@ class CollectionRepository:
             server_id: Discord server ID
             limit: Maximum number of players to return (None for all)
             offset: Number of players to skip for pagination
+            sort_by: Sort order - "time_new", "time_old", "rarity_best", "rarity_common"
 
         Returns:
             List of dictionaries containing player data
         """
         cursor = self.connection.cursor()
 
-        query = """
+        # Define sort orders (validated to prevent SQL injection)
+        # For rarity sorting, use CASE to order by tier, then by ADP within tier
+        sort_orders = {
+            "time_new": "uc.caught_at DESC",
+            "time_old": "uc.caught_at ASC",
+            "rarity_best": """CASE p.rarity_tier
+                WHEN 'GOAT' THEN 1
+                WHEN 'Mythic' THEN 2
+                WHEN 'Legendary' THEN 3
+                WHEN 'Epic' THEN 4
+                WHEN 'Rare' THEN 5
+                WHEN 'Uncommon' THEN 6
+                WHEN 'Common' THEN 7
+                ELSE 8
+            END ASC, p.adp_value ASC""",
+            "rarity_common": """CASE p.rarity_tier
+                WHEN 'GOAT' THEN 1
+                WHEN 'Mythic' THEN 2
+                WHEN 'Legendary' THEN 3
+                WHEN 'Epic' THEN 4
+                WHEN 'Rare' THEN 5
+                WHEN 'Uncommon' THEN 6
+                WHEN 'Common' THEN 7
+                ELSE 8
+            END DESC, p.adp_value DESC"""
+        }
+
+        # Default to time_new if invalid sort_by provided
+        order_clause = sort_orders.get(sort_by, sort_orders["time_new"])
+
+        query = f"""
             SELECT
                 p.id,
                 p.name,
@@ -94,7 +126,7 @@ class CollectionRepository:
             FROM user_collections uc
             JOIN players p ON uc.player_id = p.id
             WHERE uc.user_id = ? AND uc.server_id = ?
-            ORDER BY uc.caught_at DESC
+            ORDER BY {order_clause}
         """
 
         params: tuple = (user_id, server_id)
