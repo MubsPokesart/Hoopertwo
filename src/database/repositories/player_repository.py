@@ -103,6 +103,28 @@ class PlayerRepository:
         )
         return [self._row_to_dict(cursor, row) for row in cursor.fetchall()]
 
+    def update_player_image(self, name: str, image_url: str) -> bool:
+        """Update a player's image URL.
+
+        Args:
+            name: Player's full name
+            image_url: New image URL
+
+        Returns:
+            True if player was found and updated, False otherwise
+        """
+        player = self.get_player_by_name(name)
+        if not player:
+            return False
+
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE players SET image_url = ? WHERE id = ?",
+            (image_url, player["id"])
+        )
+        self.conn.commit()
+        return True
+
     def _row_to_dict(self, cursor, row) -> Dict[str, Any]:
         """Convert database row to dictionary.
 

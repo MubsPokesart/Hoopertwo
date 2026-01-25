@@ -261,6 +261,16 @@ async def seed_all_players(clear_database: bool = False):
     skip_list = SkipListManager(skip_list_path)
     skip_list.load()
 
+    # Load manual image overrides
+    manual_images_path = Path("data/manual_images.json")
+    manual_images = {}
+    if manual_images_path.exists():
+        with open(manual_images_path, 'r') as f:
+            manual_images = json.load(f)
+        logger.info(f"Loaded {len(manual_images)} manual image overrides")
+    else:
+        logger.info("No manual image overrides found")
+
     # Populate the database with players on the adp
     player_manager = PlayerManager(repo, settings.adp_csv_path)
 
@@ -328,57 +338,62 @@ async def seed_all_players(clear_database: bool = False):
         # Check if player is on ADP board
         on_adp_board = is_on_adp_board(player_name, settings.adp_players_path)
 
-        # Determine approach: pure search (last 2/5) vs inference (first 3/5)
-        use_pure_search = idx > cutoff_index
+        # Check for manual image override first
+        if player_name in manual_images:
+            image_url = manual_images[player_name]
+            logger.info(f"Using manual image override for {player_name}")
+        else:
+            # Determine approach: pure search (last 2/5) vs inference (first 3/5)
+            use_pure_search = idx > cutoff_index
 
-        if use_pure_search:
-            # PURE SEARCH PATH: Direct nodriver search to avoid '01' ID collisions
-            stats['pure_search_used'] += 1
-            logger.info(f"Using pure search for {player_name} (player {idx}/{total_players})")
+            if use_pure_search:
+                # PURE SEARCH PATH: Direct nodriver search to avoid '01' ID collisions
+                stats['pure_search_used'] += 1
+                logger.info(f"Using pure search for {player_name} (player {idx}/{total_players})")
 
-            # Validate year range exists
-            if player_stats.year_start and player_stats.year_end:
-                try:
-                    # Direct search via nodriver to get correct player_id
-                    player_id = await br_searcher.search_player_by_name_and_years(
-                        player_name,
-                        player_stats.year_start,
-                        player_stats.year_end
-                    )
+                # Validate year range exists
+                if player_stats.year_start and player_stats.year_end:
+                    try:
+                        # Direct search via nodriver to get correct player_id
+                        player_id = await br_searcher.search_player_by_name_and_years(
+                            player_name,
+                            player_stats.year_start,
+                            player_stats.year_end
+                        )
 
-                    if player_id:
-                        # Construct image URL from search result
-                        image_url = br_client.construct_image_url(player_id)
-                        stats['pure_search_success'] += 1
-                        logger.info(f"Pure search found: {player_name} -> {player_id}")
-                    else:
-                        # No matching player found in search results
-                        logger.warning(f"Pure search failed for {player_name}, no matching player found")
+                        if player_id:
+                            # Construct image URL from search result
+                            image_url = br_client.construct_image_url(player_id)
+                            stats['pure_search_success'] += 1
+                            logger.info(f"Pure search found: {player_name} -> {player_id}")
+                        else:
+                            # No matching player found in search results
+                            logger.warning(f"Pure search failed for {player_name}, no matching player found")
+                            image_url = None
+                            stats['pure_search_failed'] += 1
+
+                    except Exception as e:
+                        # Network error or search failure
+                        logger.error(f"Pure search error for {player_name}: {e}")
                         image_url = None
                         stats['pure_search_failed'] += 1
-
-                except Exception as e:
-                    # Network error or search failure
-                    logger.error(f"Pure search error for {player_name}: {e}")
+                else:
+                    # Missing year range (unlikely for last 2/5 of players)
+                    logger.warning(f"Skipping pure search for {player_name}: missing year range")
                     image_url = None
                     stats['pure_search_failed'] += 1
+
             else:
-                # Missing year range (unlikely for last 2/5 of players)
-                logger.warning(f"Skipping pure search for {player_name}: missing year range")
-                image_url = None
-                stats['pure_search_failed'] += 1
+                # INFERENCE PATH: Existing 4-tier lookup (first 3/5)
+                stats['inference_used'] += 1
+                logger.debug(f"Using inference for {player_name} (player {idx}/{total_players})")
 
-        else:
-            # INFERENCE PATH: Existing 4-tier lookup (first 3/5)
-            stats['inference_used'] += 1
-            logger.debug(f"Using inference for {player_name} (player {idx}/{total_players})")
-
-            year_range = (player_stats.year_start, player_stats.year_end)
-            image_url = await br_client.get_player_image_url(
-                player_name,
-                year_range=year_range,
-                searcher=br_searcher
-            )
+                year_range = (player_stats.year_start, player_stats.year_end)
+                image_url = await br_client.get_player_image_url(
+                    player_name,
+                    year_range=year_range,
+                    searcher=br_searcher
+                )
 
         # Verify image exists (unless ADP player - those skip verification)
         # ADP players are added even without valid images and flagged for manual fixing
@@ -500,13 +515,18 @@ async def seed_all_players(clear_database: bool = False):
             logger.debug(f"Skipping {player_name} (already in database)")
             continue
 
-        # Get image URL from Basketball Reference
-        # Note: Missing ADP players don't have year ranges from CSV, so pass None
-        image_url = await br_client.get_player_image_url(
-            player_name,
-            year_range=None,
-            searcher=br_searcher
-        )
+        # Check for manual image override first
+        if player_name in manual_images:
+            image_url = manual_images[player_name]
+            logger.info(f"Using manual image override for missing ADP player: {player_name}")
+        else:
+            # Get image URL from Basketball Reference
+            # Note: Missing ADP players don't have year ranges from CSV, so pass None
+            image_url = await br_client.get_player_image_url(
+                player_name,
+                year_range=None,
+                searcher=br_searcher
+            )
 
         # Calculate rarity tier from ADP value
         adp_value = player_obj.get("adp")
