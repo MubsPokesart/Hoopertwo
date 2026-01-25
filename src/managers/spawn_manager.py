@@ -14,13 +14,13 @@ class SpawnManager:
 
     # Spawn weights (higher = more common)
     RARITY_WEIGHTS = {
-        "GOAT": 1,        # 0.1% spawn rate
-        "Mythic": 4,      # 0.4% spawn rate
-        "Legendary": 20,  # 2.0% spawn rate
-        "Epic": 75,       # 7.5% spawn rate
-        "Rare": 100,      # 10.0% spawn rate
-        "Uncommon": 150,  # 15.0% spawn rate
-        "Common": 650,    # 65.0% spawn rate
+        "GOAT": 1,        # 0.05% spawn rate
+        "Mythic": 9,      # 0.45% spawn rate
+        "Legendary": 40,  # 2.0% spawn rate
+        "Epic": 150,       # 7.5% spawn rate
+        "Rare": 200,      # 10.0% spawn rate
+        "Uncommon": 300,  # 15.0% spawn rate
+        "Common": 1300,    # 65.0% spawn rate
     }
 
     def __init__(self, player_repository: PlayerRepository):
