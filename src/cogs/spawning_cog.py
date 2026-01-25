@@ -122,13 +122,13 @@ class SpawningCog(commands.Cog):
 
             # Add rarity hint (color-coded)
             rarity_colors = {
-                "GOAT": discord.Color.gold(),
-                "Mythic": discord.Color.brand_red(),
-                "Legendary": discord.Color.fuchsia(),
-                "Epic": discord.Color.blurple(),
-                "Rare": discord.Color.brand_green(),
+                "GOAT": discord.Color.red(),
+                "Mythic": discord.Color.blue(),
+                "Legendary": discord.Color.pink(),
+                "Epic": discord.Color.purple(),
+                "Rare": discord.Color.gold(),
                 "Uncommon": discord.Color.orange(),
-                "Common": discord.Color.teal(),
+                "Common": discord.Color.light_embed(),
             }
             embed.color = rarity_colors.get(player["rarity_tier"], discord.Color.gold())
 
