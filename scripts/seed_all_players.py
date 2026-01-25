@@ -273,6 +273,19 @@ async def seed_all_players(clear_database: bool = False):
     qualified_players = csv_parser.parse_players()
     logger.info(f"Found {len(qualified_players)} players with >{MIN_CAREER_MINUTES} minutes")
 
+    # Calculate cutoff for pure search vs inference approach
+    # Last 2/5 of players use pure search to avoid '01' ID collision issues
+    total_players = len(qualified_players)
+    cutoff_index = int(total_players * 3 / 5)  # Last 2/5 starts at 3/5 mark
+
+    logger.info(f"\n{'='*60}")
+    logger.info(f"IMAGE RETRIEVAL STRATEGY")
+    logger.info(f"{'='*60}")
+    logger.info(f"First {cutoff_index} players: Inference (4-tier lookup)")
+    logger.info(f"Last {total_players - cutoff_index} players: Pure search (nodriver)")
+    logger.info(f"Cutoff index: {cutoff_index}")
+    logger.info(f"{'='*60}\n")
+
     # Track statistics
     stats = {
         'total_checked': 0,
@@ -280,7 +293,11 @@ async def seed_all_players(clear_database: bool = False):
         'skipped_cached': 0,
         'no_image': 0,
         'adp_missing_image': 0,
-        'added': 0
+        'added': 0,
+        'pure_search_used': 0,      # NEW
+        'pure_search_success': 0,   # NEW
+        'pure_search_failed': 0,    # NEW
+        'inference_used': 0         # NEW
     }
 
     start_time = time.time()
@@ -311,13 +328,57 @@ async def seed_all_players(clear_database: bool = False):
         # Check if player is on ADP board
         on_adp_board = is_on_adp_board(player_name, settings.adp_players_path)
 
-        # Get image URL from Basketball Reference with year range for collision resolution
-        year_range = (player_stats.year_start, player_stats.year_end)
-        image_url = await br_client.get_player_image_url(
-            player_name,
-            year_range=year_range,
-            searcher=br_searcher
-        )
+        # Determine approach: pure search (last 2/5) vs inference (first 3/5)
+        use_pure_search = idx > cutoff_index
+
+        if use_pure_search:
+            # PURE SEARCH PATH: Direct nodriver search to avoid '01' ID collisions
+            stats['pure_search_used'] += 1
+            logger.info(f"Using pure search for {player_name} (player {idx}/{total_players})")
+
+            # Validate year range exists
+            if player_stats.year_start and player_stats.year_end:
+                try:
+                    # Direct search via nodriver to get correct player_id
+                    player_id = await br_searcher.search_player_by_name_and_years(
+                        player_name,
+                        player_stats.year_start,
+                        player_stats.year_end
+                    )
+
+                    if player_id:
+                        # Construct image URL from search result
+                        image_url = br_client.construct_image_url(player_id)
+                        stats['pure_search_success'] += 1
+                        logger.info(f"Pure search found: {player_name} -> {player_id}")
+                    else:
+                        # No matching player found in search results
+                        logger.warning(f"Pure search failed for {player_name}, no matching player found")
+                        image_url = None
+                        stats['pure_search_failed'] += 1
+
+                except Exception as e:
+                    # Network error or search failure
+                    logger.error(f"Pure search error for {player_name}: {e}")
+                    image_url = None
+                    stats['pure_search_failed'] += 1
+            else:
+                # Missing year range (unlikely for last 2/5 of players)
+                logger.warning(f"Skipping pure search for {player_name}: missing year range")
+                image_url = None
+                stats['pure_search_failed'] += 1
+
+        else:
+            # INFERENCE PATH: Existing 4-tier lookup (first 3/5)
+            stats['inference_used'] += 1
+            logger.debug(f"Using inference for {player_name} (player {idx}/{total_players})")
+
+            year_range = (player_stats.year_start, player_stats.year_end)
+            image_url = await br_client.get_player_image_url(
+                player_name,
+                year_range=year_range,
+                searcher=br_searcher
+            )
 
         # Verify image exists (unless ADP player - those skip verification)
         # ADP players are added even without valid images and flagged for manual fixing
@@ -498,6 +559,14 @@ async def seed_all_players(clear_database: bool = False):
 
     # Print final statistics
     elapsed_time = time.time() - start_time
+    logger.info(f"\n{'='*60}")
+    logger.info(f"IMAGE RETRIEVAL STATISTICS")
+    logger.info(f"{'='*60}")
+    logger.info(f"Inference path used: {stats['inference_used']} players")
+    logger.info(f"Pure search path used: {stats['pure_search_used']} players")
+    logger.info(f"  - Pure search successes: {stats['pure_search_success']}")
+    logger.info(f"  - Pure search failures: {stats['pure_search_failed']}")
+    logger.info(f"{'='*60}\n")
     logger.info("\n" + "="*60)
     logger.info("SEEDING COMPLETE!")
     logger.info("="*60)
