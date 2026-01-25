@@ -182,7 +182,7 @@ class SpawningCog(commands.Cog):
             embed = discord.Embed(
                 title="✅ Player Caught!",
                 description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
-                color=discord.Color.gold()
+                color=discord.Color.dark_theme()
             )
             embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
             if active_spawn.get("adp_value"):
