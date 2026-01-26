@@ -1,6 +1,7 @@
 """HooperTwo Discord Bot - Entry point."""
 import asyncio
 import logging
+import os
 from discord.ext import commands
 import discord
 
@@ -140,26 +141,25 @@ class HooperTwoBot(commands.Bot):
 
         # Sync slash commands
         try:
-            # For testing: sync to guild instantly (global sync takes 1 hour!)
-            if self.guilds:
-                test_guild = self.guilds[0]
+            sync_mode = os.getenv('COMMAND_SYNC_MODE', 'guild')
 
-                # Clear only guild commands (DON'T clear global - those are our source!)
-                logger.info("Clearing old guild commands...")
-                self.tree.clear_commands(guild=test_guild)
-
-                # Copy global commands to guild
-                self.tree.copy_global_to(guild=test_guild)
-
-                # Sync to guild (instant)
-                synced = await self.tree.sync(guild=test_guild)
-                logger.info(f"✅ Synced {len(synced)} command(s) to guild '{test_guild.name}' (INSTANT)")
-                logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
-            else:
-                # Fallback to global sync (takes up to 1 hour to appear)
+            if sync_mode == 'global':
+                # Production: global sync for all servers
                 synced = await self.tree.sync()
-                logger.info(f"Synced {len(synced)} command(s) globally (may take up to 1 hour to appear)")
-                logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
+                logger.info(f"✅ Synced {len(synced)} command(s) globally (takes ~1 hour)")
+            elif self.guilds:
+                # Development: instant guild sync for testing
+                test_guild = self.guilds[0]
+                self.tree.clear_commands(guild=test_guild)
+                self.tree.copy_global_to(guild=test_guild)
+                synced = await self.tree.sync(guild=test_guild)
+                logger.info(f"✅ Synced {len(synced)} command(s) to '{test_guild.name}' (INSTANT)")
+            else:
+                # Fallback to global
+                synced = await self.tree.sync()
+                logger.info(f"Synced {len(synced)} command(s) globally")
+
+            logger.info(f"Synced commands: {[cmd.name for cmd in synced]}")
         except Exception as e:
             logger.error(f"Failed to sync commands: {e}")
             if hasattr(e, 'status') and e.status == 403:
@@ -208,6 +208,11 @@ class HooperTwoBot(commands.Bot):
 async def main():
     """Main entry point."""
     bot = HooperTwoBot()
+
+    # Apply production database optimizations if in production mode
+    if os.getenv('ENVIRONMENT') == 'production':
+        from src.utils.db_optimizer import optimize_database
+        optimize_database(bot.settings.database_path)
 
     try:
         await bot.start(bot.settings.discord_token)

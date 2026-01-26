@@ -6,7 +6,6 @@ services:
     container_name: hooper-two-bot
     restart: unless-stopped
     env_file:
-      - .env
     volumes:
       # Persist database and images
       - ./data:/app/data
@@ -19,6 +18,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sqlite3; sqlite3.connect('data/hooper_two.db').execute('SELECT 1')"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 networks:
   hooper-network:
