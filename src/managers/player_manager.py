@@ -17,13 +17,13 @@ class PlayerManager:
     - Coordinate player data operations
     """
 
-    # Rarity tier thresholds
-    GOAT_THRESHOLD = 2.0
-    MYTHIC_THRESHOLD = 32.0
-    LEGENDARY_THRESHOLD = 64.0
-    EPIC_THRESHOLD = 128.0
-    RARE_THRESHOLD = 256.0
-    UNCOMMON_THRESHOLD = 256.0
+    # Rarity tier thresholds (based on ADP rank ranges)
+    GOAT_THRESHOLD = 2.0      # M.Jordan (1.41) - L.James (1.90): 2 players
+    MYTHIC_THRESHOLD = 33.0   
+    LEGENDARY_THRESHOLD = 75.0 
+    EPIC_THRESHOLD = 155.25 
+    RARE_THRESHOLD = 260.1
+    UNCOMMON_THRESHOLD = 260.1  
 
     def __init__(self, repository: PlayerRepository, adp_csv_path: str):
         """Initialize player manager.
@@ -37,15 +37,6 @@ class PlayerManager:
 
     def calculate_rarity_tier(self, adp_value: Optional[float]) -> str:
         """Calculate rarity tier based on ADP value.
-
-        Rarity tiers:
-        - GOAT: ADP < 2
-        - Mythic: 2 <= ADP < 32
-        - Legendary: 32 <= ADP < 64
-        - Epic: 64 <= ADP < 128
-        - Rare: 128 <= ADP < 256
-        - Uncommon: ADP >= 256 (on ADP board)
-        - Common: No ADP value (not on ADP board)
 
         Args:
             adp_value: Average draft position value (None for non-ADP players)
@@ -97,3 +88,27 @@ class PlayerManager:
                 loaded_count += 1
 
         return loaded_count
+
+    def recalculate_all_rarities(self) -> int:
+        """Recalculate rarity tiers for all players with ADP values.
+
+        Uses current threshold values to recalculate and update rarities
+        for all players that have an ADP value.
+
+        Returns:
+            Number of players updated
+        """
+        players_with_adp = self.repository.get_players_with_adp()
+        updated_count = 0
+
+        for player in players_with_adp:
+            adp_value = player["adp_value"]
+            current_rarity = player["rarity_tier"]
+            new_rarity = self.calculate_rarity_tier(adp_value)
+
+            # Only update if rarity changed
+            if new_rarity != current_rarity:
+                self.repository.update_player_rarity(player["id"], new_rarity)
+                updated_count += 1
+
+        return updated_count

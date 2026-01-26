@@ -125,6 +125,36 @@ class PlayerRepository:
         self.conn.commit()
         return True
 
+    def update_player_rarity(self, player_id: int, rarity_tier: str) -> bool:
+        """Update a player's rarity tier.
+
+        Args:
+            player_id: Player's database ID
+            rarity_tier: New rarity tier
+
+        Returns:
+            True if update successful
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE players SET rarity_tier = ? WHERE id = ?",
+            (rarity_tier, player_id)
+        )
+        self.conn.commit()
+        return cursor.rowcount > 0
+
+    def get_players_with_adp(self) -> List[Dict[str, Any]]:
+        """Get all players that have an ADP value.
+
+        Returns:
+            List of player dicts with non-null ADP values
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "SELECT * FROM players WHERE adp_value IS NOT NULL ORDER BY adp_value"
+        )
+        return [self._row_to_dict(cursor, row) for row in cursor.fetchall()]
+
     def _row_to_dict(self, cursor, row) -> Dict[str, Any]:
         """Convert database row to dictionary.
 
