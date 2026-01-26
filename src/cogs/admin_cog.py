@@ -6,7 +6,6 @@ from typing import Optional, List
 from pathlib import Path
 from src.managers.config_manager import ConfigManager, ConfigValidationError
 from src.managers.backup_manager import BackupManager
-from src.utils.permission_checks import is_admin
 
 
 class AdminCog(commands.Cog):
@@ -33,7 +32,8 @@ class AdminCog(commands.Cog):
         self.backup_manager = backup_manager
 
     @app_commands.command(name="config", description="View current server configuration")
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def view_config(self, interaction: discord.Interaction):
         """Display current server configuration.
 
@@ -78,7 +78,8 @@ class AdminCog(commands.Cog):
         description="Set how many messages trigger a spawn"
     )
     @app_commands.describe(threshold="Number of messages before spawn (10-10000)")
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def set_spawn_threshold(
         self,
         interaction: discord.Interaction,
@@ -125,7 +126,8 @@ class AdminCog(commands.Cog):
     @app_commands.describe(
         channels="Channels where spawns are allowed (mention multiple with space)"
     )
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def set_spawn_channels(
         self,
         interaction: discord.Interaction,
@@ -190,7 +192,8 @@ class AdminCog(commands.Cog):
         name="clear-spawn-channels",
         description="Allow spawns in all channels (remove restrictions)"
     )
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def clear_spawn_channels(self, interaction: discord.Interaction):
         """Clear spawn channel restrictions.
 
@@ -218,7 +221,8 @@ class AdminCog(commands.Cog):
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="backup", description="Create a manual database backup")
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def create_backup(self, interaction: discord.Interaction):
         """Create a manual database backup.
 
@@ -273,7 +277,8 @@ class AdminCog(commands.Cog):
             await interaction.followup.send(embed=embed, ephemeral=True)
 
     @app_commands.command(name="list-backups", description="List available database backups")
-    @commands.check(is_admin())
+    @app_commands.default_permissions(administrator=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def list_backups(self, interaction: discord.Interaction):
         """List all available backups.
 
