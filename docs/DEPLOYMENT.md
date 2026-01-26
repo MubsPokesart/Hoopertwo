@@ -84,6 +84,19 @@ COMMAND_SYNC_MODE=global
 ENVIRONMENT=production
 ```
 
+**Initialize Database (Optional):**
+
+If you want to start fresh with all players but no user collections:
+
+```bash
+# Initialize database from SQL file
+python3 scripts/init_database.py
+
+# OR use the automated deployment script
+chmod +x scripts/deploy_to_oracle.sh
+./scripts/deploy_to_oracle.sh
+```
+
 **Deploy:**
 ```bash
 docker-compose up -d
@@ -153,6 +166,38 @@ docker inspect hooper-two-bot | grep -A 5 Health  # Health check status
 docker-compose down
 cp data/backups/hoopertwo_backup_<timestamp>.db data/hooper_two.db
 docker-compose up -d
+```
+
+### Reset Database (Keep Players, Wipe Collections)
+```bash
+# Backup first!
+docker exec hooper-two-bot python scripts/backup_database.py
+
+# Stop bot
+docker-compose down
+
+# Reset to fresh player data (removes all user collections)
+sqlite3 data/hooper_two.db < data/hooper_two_players_only.sql
+
+# Restart
+docker-compose up -d
+```
+
+### Update Player Rarities
+```bash
+# Make rarity changes in local database
+# Then regenerate the SQL file
+poetry run python -c "from export_db_to_sql import export_database; export_database()"
+
+# Commit the updated SQL file
+git add data/hooper_two_players_only.sql
+git commit -m "Update player rarities"
+git push
+
+# Pull on Oracle server
+cd ~/hoopertwo
+git pull
+# Optionally reset database if you want to apply rarity changes
 ```
 
 ---

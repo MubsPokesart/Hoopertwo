@@ -26,7 +26,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY src/ ./src/
 COPY bot.py ./
+COPY scripts/ ./scripts/
 COPY data/adp_board.csv ./data/
+COPY data/hooper_two_players_only.sql ./data/
 
 # Create directories for data persistence
 RUN mkdir -p data/images data/backups
