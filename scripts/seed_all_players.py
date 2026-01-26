@@ -338,6 +338,11 @@ async def seed_all_players(clear_database: bool = False):
         # Check if player is on ADP board
         on_adp_board = is_on_adp_board(player_name, settings.adp_players_path)
 
+        # Get ADP object if player is on board (fetch once for all code paths)
+        player_object = None
+        if on_adp_board:
+            player_object = get_adp_object(player_name, settings.adp_players_path)
+
         # Check for manual image override first
         if player_name in manual_images:
             image_url = manual_images[player_name]
@@ -410,7 +415,6 @@ async def seed_all_players(clear_database: bool = False):
         if on_adp_board and image_url:
             # On ADP - give it a rarity and adp value
             try:
-                player_object = get_adp_object(player_name, settings.adp_players_path)
                 repo.create_player(
                     name=player_name,
                     adp_value=player_object["adp"],
@@ -442,14 +446,14 @@ async def seed_all_players(clear_database: bool = False):
                 logger.error(f"Error adding {player_name}: {e}")
 
         elif on_adp_board and not image_url:
-            # ADP board player without image - LOG and store with NULL
+            # ADP board player without image - LOG and store with NULL image but correct ADP
             logger.error(f"ADP BOARD PLAYER MISSING IMAGE: {player_name}")
             logger.error(f"   Manual intervention required!")
 
             try:
                 repo.create_player(
                     name=player_name,
-                    adp_value=None,  # Will be set by ADP board loader
+                    adp_value=player_object["adp"],  # Use actual ADP value
                     rarity_tier=player_manager.calculate_rarity_tier(player_object["adp"]),
                     image_url=None,  # NULL - needs manual fix
                     career_minutes=career_minutes
