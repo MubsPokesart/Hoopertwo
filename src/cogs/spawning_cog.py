@@ -141,7 +141,7 @@ class SpawningCog(commands.Cog):
 
     @commands.hybrid_command(name="recognize")
     @app_commands.describe(player_name="The full name of the NBA player")
-    @commands.cooldown(1, 5, commands.BucketType.user)
+    @commands.cooldown(1, 0.5, commands.BucketType.user)
     async def recognize(self, ctx: commands.Context, *, player_name: str):
         """Recognize and catch a spawned player.
 
