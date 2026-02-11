@@ -6,6 +6,7 @@ services:
     container_name: hooper-two-bot
     restart: unless-stopped
     env_file: .env
+    user: root
     volumes:
       # Persist database and images
       - ./data:/app/data
