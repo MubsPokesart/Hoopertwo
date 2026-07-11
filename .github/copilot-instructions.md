@@ -75,9 +75,10 @@ Pytest uses `asyncio_mode = "auto"`. Async Discord tests still commonly use
   that contract through managers because cogs and integration tests consume it
   directly.
 - Collections are unique by `(user_id, player_id, server_id)`. A repeated catch is a
-  successful recognition with `already_owned=True`, not another collection row.
-  Server configuration is also server-scoped; `spawn_channels` is stored as JSON and
-  an empty list means all channels.
+  successful recognition with `already_owned=True`, not another collection row or a
+  consumed active spawn. Duplicate owners receive a private notice while the spawn
+  remains available to other users. Server configuration is also server-scoped;
+  `spawn_channels` is stored as JSON and an empty list means all channels.
 - Validate command input before business logic. Player-name matching must go through
   `InputValidator` and `TextNormalizer`, which deliberately make recognition
   case-, accent-, dot-, apostrophe-, dash-, and whitespace-insensitive.

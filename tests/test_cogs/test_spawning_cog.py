@@ -36,11 +36,18 @@ def create_mock_message(author_is_bot=False, is_command=False):
     return message
 
 
-def create_mock_context(channel_id=123456789, author_id=987654321, author_name="TestUser"):
+def create_mock_context(
+    channel_id=123456789,
+    author_id=987654321,
+    author_name="TestUser",
+    server_id=111222333
+):
     """Create a mock command context."""
     ctx = MagicMock(spec=commands.Context)
     ctx.channel = MagicMock()
     ctx.channel.id = channel_id
+    ctx.guild = MagicMock()
+    ctx.guild.id = server_id
     ctx.author = MagicMock()
     ctx.author.id = author_id
     ctx.author.name = author_name
@@ -85,6 +92,10 @@ def spawning_cog(bot, cache, spawn_manager):
     """Fixture for SpawningCog."""
     from unittest.mock import MagicMock
     collection_manager = MagicMock()
+    collection_manager.catch_player.return_value = {
+        "success": True,
+        "already_owned": False
+    }
     config_manager = MagicMock()
     # Mock get_config to return default threshold
     config_manager.get_config.return_value = {"spawn_threshold": 500, "spawn_channels": []}
@@ -191,9 +202,44 @@ async def test_recognize_correct_player(spawning_cog, cache):
     embed = call_args.kwargs.get('embed')
     assert embed is not None
     assert "caught" in embed.description.lower()
+    spawning_cog.collection_manager.catch_player.assert_called_once_with(
+        user_id=ctx.author.id,
+        player_id=player["id"],
+        server_id=ctx.guild.id
+    )
 
     # Active spawn should be cleared
     assert cache.get_active_spawn(ctx.channel.id) is None
+
+
+@pytest.mark.asyncio
+async def test_recognize_already_owned_player_keeps_spawn_active(spawning_cog, cache):
+    """Test duplicate owners cannot consume a spawn needed by another user."""
+    ctx = create_mock_context()
+    player = {
+        "id": 1,
+        "name": "Michael Jordan",
+        "rarity_tier": "GOAT",
+        "adp_value": 1.5,
+        "image_url": "https://example.com/mj.jpg"
+    }
+    cache.set_active_spawn(ctx.channel.id, player)
+    spawning_cog.collection_manager.catch_player.return_value = {
+        "success": True,
+        "already_owned": True
+    }
+
+    await spawning_cog.recognize.callback(
+        spawning_cog,
+        ctx,
+        player_name="Michael Jordan"
+    )
+
+    ctx.send.assert_awaited_once_with(
+        "You already have this player! This spawn is still available.",
+        ephemeral=True
+    )
+    assert cache.get_active_spawn(ctx.channel.id) == player
 
 
 @pytest.mark.asyncio

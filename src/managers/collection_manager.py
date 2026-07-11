@@ -35,7 +35,8 @@ class CollectionManager:
             server_id: Discord server ID
 
         Returns:
-            Dictionary with success status and already_owned flag
+            Dictionary indicating whether the name was recognized and whether the
+            player was already owned instead of newly captured
         """
         was_added = self.repository.add_player_to_collection(
             user_id, player_id, server_id

@@ -175,36 +175,35 @@ class SpawningCog(commands.Cog):
             server_id=ctx.guild.id
         )
 
+        if result["already_owned"]:
+            logger.info(
+                f"User {ctx.author.id} already owns {active_spawn['name']} "
+                f"in server {ctx.guild.id}"
+            )
+            await ctx.send(
+                "You already have this player! This spawn is still available.",
+                ephemeral=True
+            )
+            return
+
         self.cache.clear_active_spawn(ctx.channel.id)
 
-        # Create success embed
-        if result["already_owned"]:
-            embed = discord.Embed(
-                title="✅ Player Caught!",
-                description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
-                color=discord.Color.dark_theme()
-            )
-            embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
-            if active_spawn.get("adp_value"):
-                embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
-            embed.add_field(name="Status", value="⚠️ You already owned this player!", inline=False)
-        else:
-            embed = discord.Embed(
-                title="✅ Player Caught!",
-                description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
-                color=discord.Color.green()
-            )
-            embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
-            if active_spawn.get("adp_value"):
-                embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
-            embed.add_field(name="Status", value="🆕 New player added to your collection!", inline=False)
+        embed = discord.Embed(
+            title="✅ Player Caught!",
+            description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
+        if active_spawn.get("adp_value"):
+            embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
+        embed.add_field(name="Status", value="🆕 New player added to your collection!", inline=False)
 
         if active_spawn.get("image_url"):
             embed.set_thumbnail(url=active_spawn["image_url"])
 
         await ctx.send(embed=embed)
 
-        logger.info(f"User {ctx.author.id} caught {active_spawn['name']} (already_owned={result['already_owned']})")
+        logger.info(f"User {ctx.author.id} caught {active_spawn['name']}")
 
     @recognize.error
     async def recognize_error(self, ctx: commands.Context, error: commands.CommandError):
