@@ -48,20 +48,17 @@ class CollectionRepository:
         Returns:
             True if added successfully, False if already owned
         """
-        try:
-            cursor = self.connection.cursor()
-            cursor.execute(
-                """
-                INSERT INTO user_collections (user_id, player_id, server_id)
-                VALUES (?, ?, ?)
-                """,
-                (user_id, player_id, server_id)
-            )
-            self.connection.commit()
-            return True
-        except sqlite3.IntegrityError:
-            # Unique constraint violation - already owned
-            return False
+        cursor = self.connection.cursor()
+        cursor.execute(
+            """
+            INSERT INTO user_collections (user_id, player_id, server_id)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, player_id, server_id) DO NOTHING
+            """,
+            (user_id, player_id, server_id)
+        )
+        self.connection.commit()
+        return cursor.rowcount == 1
 
     def get_user_collection(
         self,

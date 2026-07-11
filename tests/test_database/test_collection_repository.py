@@ -72,6 +72,43 @@ def test_add_player_to_collection_duplicate(db_connection):
     assert count == 1
 
 
+def test_add_player_to_collection_allows_same_player_in_different_server(db_connection):
+    """Test that ownership remains scoped to each Discord server."""
+    repo = CollectionRepository(db_connection)
+
+    first_result = repo.add_player_to_collection(
+        user_id=123456789,
+        player_id=1,
+        server_id=987654321
+    )
+    second_result = repo.add_player_to_collection(
+        user_id=123456789,
+        player_id=1,
+        server_id=111222333
+    )
+
+    assert first_result is True
+    assert second_result is True
+
+    cursor = db_connection.execute(
+        "SELECT COUNT(*) FROM user_collections WHERE user_id = ? AND player_id = ?",
+        (123456789, 1)
+    )
+    assert cursor.fetchone()[0] == 2
+
+
+def test_add_player_to_collection_raises_for_invalid_player(db_connection):
+    """Test that unrelated integrity failures are not reported as duplicates."""
+    repo = CollectionRepository(db_connection)
+
+    with pytest.raises(sqlite3.IntegrityError):
+        repo.add_player_to_collection(
+            user_id=123456789,
+            player_id=999,
+            server_id=987654321
+        )
+
+
 def test_get_user_collection(db_connection):
     """Test retrieving a user's collection with player details."""
     # Add more test players

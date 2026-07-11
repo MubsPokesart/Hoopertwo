@@ -80,6 +80,17 @@ def test_full_player_collection_workflow(all_repositories, all_managers):
     assert result2["success"] is True
     assert result2["already_owned"] is True  # Should indicate duplicate
 
+    collection_after_duplicate = managers["collection"].get_collection(
+        user_id=user_id,
+        server_id=server_id,
+        page=0,
+        page_size=10
+    )
+
+    assert len(collection_after_duplicate["players"]) == 1
+    assert collection_after_duplicate["stats"]["total_players"] == 1
+    assert collection_after_duplicate["stats"]["total_points"] == 1000
+
 
 def test_server_configuration_workflow(all_managers):
     """Test server configuration changes."""

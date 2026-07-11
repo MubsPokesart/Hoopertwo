@@ -22,6 +22,23 @@ def test_catch_player_success():
     mock_repo.add_player_to_collection.assert_called_once_with(123456789, 1, 987654321)
 
 
+def test_catch_player_already_owned():
+    """Test recognizing a player already in the user's server collection."""
+    mock_repo = Mock()
+    mock_repo.add_player_to_collection.return_value = False
+
+    manager = CollectionManager(mock_repo)
+
+    result = manager.catch_player(
+        user_id=123456789,
+        player_id=1,
+        server_id=987654321
+    )
+
+    assert result == {"success": True, "already_owned": True}
+    mock_repo.add_player_to_collection.assert_called_once_with(123456789, 1, 987654321)
+
+
 def test_get_collection_formatted():
     """Test getting formatted collection data."""
     mock_repo = Mock()
