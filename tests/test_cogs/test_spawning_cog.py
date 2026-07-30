@@ -7,14 +7,13 @@ Tests cover:
 - Error handling
 """
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import discord
 from discord.ext import commands
 
 from src.cogs.spawning_cog import SpawningCog
 from src.coordinators.cache_coordinator import CacheCoordinator
 from src.managers.spawn_manager import SpawnManager
-from src.validators.input_validator import ValidationError
 
 
 # Helper to create mock discord objects
@@ -37,10 +36,7 @@ def create_mock_message(author_is_bot=False, is_command=False):
 
 
 def create_mock_context(
-    channel_id=123456789,
-    author_id=987654321,
-    author_name="TestUser",
-    server_id=111222333
+    channel_id=123456789, author_id=987654321, author_name="TestUser", server_id=111222333
 ):
     """Create a mock command context."""
     ctx = MagicMock(spec=commands.Context)
@@ -59,13 +55,16 @@ def create_mock_context(
 def create_mock_spawn_manager():
     """Create a mock spawn manager."""
     spawn_manager = MagicMock(spec=SpawnManager)
-    spawn_manager.select_random_player = MagicMock(return_value={
-        "id": 1,
-        "name": "Michael Jordan",
-        "rarity_tier": "GOAT",
-        "adp_value": 1.5,
-        "image_url": "https://example.com/mj.jpg"
-    })
+    spawn_manager.select_random_player = MagicMock(
+        return_value={
+            "id": 1,
+            "name": "Michael Jordan",
+            "rarity_tier": "GOAT",
+            "edition": "Standard",
+            "adp_value": 1.5,
+            "image_url": "https://example.com/mj.jpg",
+        }
+    )
     return spawn_manager
 
 
@@ -91,11 +90,9 @@ def bot():
 def spawning_cog(bot, cache, spawn_manager):
     """Fixture for SpawningCog."""
     from unittest.mock import MagicMock
+
     collection_manager = MagicMock()
-    collection_manager.catch_player.return_value = {
-        "success": True,
-        "already_owned": False
-    }
+    collection_manager.catch_player.return_value = {"success": True, "already_owned": False}
     config_manager = MagicMock()
     # Mock get_config to return default threshold
     config_manager.get_config.return_value = {"spawn_threshold": 500, "spawn_channels": []}
@@ -189,7 +186,7 @@ async def test_recognize_correct_player(spawning_cog, cache):
         "name": "Michael Jordan",
         "rarity_tier": "GOAT",
         "adp_value": 1.5,
-        "image_url": "https://example.com/mj.jpg"
+        "image_url": "https://example.com/mj.jpg",
     }
     cache.set_active_spawn(ctx.channel.id, player)
 
@@ -199,13 +196,14 @@ async def test_recognize_correct_player(spawning_cog, cache):
     # Should send success message
     ctx.send.assert_called_once()
     call_args = ctx.send.call_args
-    embed = call_args.kwargs.get('embed')
+    embed = call_args.kwargs.get("embed")
     assert embed is not None
     assert "caught" in embed.description.lower()
     spawning_cog.collection_manager.catch_player.assert_called_once_with(
         user_id=ctx.author.id,
         player_id=player["id"],
-        server_id=ctx.guild.id
+        server_id=ctx.guild.id,
+        edition="Standard",
     )
 
     # Active spawn should be cleared
@@ -221,25 +219,68 @@ async def test_recognize_already_owned_player_keeps_spawn_active(spawning_cog, c
         "name": "Michael Jordan",
         "rarity_tier": "GOAT",
         "adp_value": 1.5,
-        "image_url": "https://example.com/mj.jpg"
+        "image_url": "https://example.com/mj.jpg",
     }
     cache.set_active_spawn(ctx.channel.id, player)
     spawning_cog.collection_manager.catch_player.return_value = {
         "success": True,
-        "already_owned": True
+        "already_owned": True,
     }
+
+    await spawning_cog.recognize.callback(spawning_cog, ctx, player_name="Michael Jordan")
+
+    ctx.send.assert_awaited_once_with(
+        "You already have this player! This spawn is still available.", ephemeral=True
+    )
+    assert cache.get_active_spawn(ctx.channel.id) == player
+
+
+@pytest.mark.asyncio
+async def test_trigger_spawn_renders_phantom_in_black(spawning_cog, spawn_manager):
+    channel = MagicMock(spec=discord.TextChannel)
+    channel.id = 123456789
+    channel.send = AsyncMock()
+    spawn_manager.select_random_player.return_value = {
+        "id": 1,
+        "name": "Michael Jordan",
+        "rarity_tier": "GOAT",
+        "edition": "Phantom",
+        "image_url": "https://example.com/mj.jpg",
+    }
+
+    await spawning_cog._trigger_spawn(channel)
+
+    embed = channel.send.await_args.kwargs["embed"]
+    assert "Phantom" in embed.title
+    assert embed.color == discord.Color.from_rgb(0, 0, 0)
+
+
+@pytest.mark.asyncio
+async def test_recognize_phantom_persists_and_displays_edition(spawning_cog, cache):
+    ctx = create_mock_context()
+    player = {
+        "id": 1,
+        "name": "Michael Jordan",
+        "rarity_tier": "GOAT",
+        "edition": "Phantom",
+    }
+    cache.set_active_spawn(ctx.channel.id, player)
 
     await spawning_cog.recognize.callback(
         spawning_cog,
         ctx,
-        player_name="Michael Jordan"
+        player_name="Michael Jordan",
     )
 
-    ctx.send.assert_awaited_once_with(
-        "You already have this player! This spawn is still available.",
-        ephemeral=True
+    spawning_cog.collection_manager.catch_player.assert_called_once_with(
+        user_id=ctx.author.id,
+        player_id=1,
+        server_id=ctx.guild.id,
+        edition="Phantom",
     )
-    assert cache.get_active_spawn(ctx.channel.id) == player
+    embed = ctx.send.await_args.kwargs["embed"]
+    assert "Phantom Michael Jordan" in embed.description
+    assert embed.color == discord.Color.from_rgb(0, 0, 0)
 
 
 @pytest.mark.asyncio
@@ -362,9 +403,7 @@ async def test_recognize_error_cooldown(spawning_cog):
 
     # Create cooldown error
     error = commands.CommandOnCooldown(
-        cooldown=MagicMock(),
-        retry_after=5.5,
-        type=commands.BucketType.user
+        cooldown=MagicMock(), retry_after=5.5, type=commands.BucketType.user
     )
 
     await spawning_cog.recognize_error(ctx, error)

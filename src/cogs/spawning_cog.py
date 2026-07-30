@@ -38,7 +38,7 @@ class SpawningCog(commands.Cog):
         cache: CacheCoordinator,
         spawn_manager: SpawnManager,
         collection_manager: CollectionManager,
-        config_manager: ConfigManager
+        config_manager: ConfigManager,
     ):
         """Initialize spawning cog.
 
@@ -105,15 +105,20 @@ class SpawningCog(commands.Cog):
 
             # Select random player
             player = self.spawn_manager.select_random_player()
+            is_phantom = player.get("edition") == "Phantom"
 
             # Set as active spawn
             self.cache.set_active_spawn(channel.id, player)
 
             # Create spawn embed
             embed = discord.Embed(
-                title="🏀 A wild NBA player appeared!",
+                title=(
+                    "🌑 A Phantom NBA player appeared!"
+                    if is_phantom
+                    else "🏀 A wild NBA player appeared!"
+                ),
                 description="Use `/recognize <player name>` to catch them!",
-                color=discord.Color.gold()
+                color=discord.Color.from_rgb(0, 0, 0) if is_phantom else discord.Color.gold(),
             )
 
             # Add image if available
@@ -123,6 +128,7 @@ class SpawningCog(commands.Cog):
             # Add rarity hint (color-coded)
             rarity_colors = {
                 "GOAT": discord.Color.red(),
+                "Cosmic": discord.Color.green(),
                 "Mythic": discord.Color.blue(),
                 "Legendary": discord.Color.pink(),
                 "Epic": discord.Color.purple(),
@@ -130,10 +136,16 @@ class SpawningCog(commands.Cog):
                 "Uncommon": discord.Color.orange(),
                 "Common": discord.Color.light_embed(),
             }
-            embed.color = rarity_colors.get(player["rarity_tier"], discord.Color.gold())
+            if not is_phantom:
+                embed.color = rarity_colors.get(
+                    player["rarity_tier"],
+                    discord.Color.gold(),
+                )
 
             await channel.send(embed=embed)
-            logger.info(f"Spawned {player['name']} ({player['rarity_tier']}) in channel {channel.id}")
+            logger.info(
+                f"Spawned {player['name']} ({player['rarity_tier']}) in channel {channel.id}"
+            )
 
         except ValueError as e:
             logger.error(f"Failed to trigger spawn: {e}")
@@ -163,16 +175,16 @@ class SpawningCog(commands.Cog):
             return
 
         # Check if name matches (using TextNormalizer for flexible matching)
-        if TextNormalizer.normalize(player_name) != \
-           TextNormalizer.normalize(active_spawn["name"]):
-            await ctx.send(f"❌ That's not the right player!", ephemeral=True)
+        if TextNormalizer.normalize(player_name) != TextNormalizer.normalize(active_spawn["name"]):
+            await ctx.send("❌ That's not the right player!", ephemeral=True)
             return
 
         # Correct! Add to collection
         result = self.collection_manager.catch_player(
             user_id=ctx.author.id,
             player_id=active_spawn["id"],
-            server_id=ctx.guild.id
+            server_id=ctx.guild.id,
+            edition=active_spawn.get("edition", "Standard"),
         )
 
         if result["already_owned"]:
@@ -181,19 +193,27 @@ class SpawningCog(commands.Cog):
                 f"in server {ctx.guild.id}"
             )
             await ctx.send(
-                "You already have this player! This spawn is still available.",
-                ephemeral=True
+                (
+                    "You already have this Phantom edition! " "This spawn is still available."
+                    if active_spawn.get("edition") == "Phantom"
+                    else "You already have this player! This spawn is still available."
+                ),
+                ephemeral=True,
             )
             return
 
         self.cache.clear_active_spawn(ctx.channel.id)
+        is_phantom = active_spawn.get("edition") == "Phantom"
+        display_name = f"Phantom {active_spawn['name']}" if is_phantom else active_spawn["name"]
 
         embed = discord.Embed(
             title="✅ Player Caught!",
-            description=f"**{ctx.author.mention}** caught **{active_spawn['name']}**!",
-            color=discord.Color.green()
+            description=f"**{ctx.author.mention}** caught **{display_name}**!",
+            color=discord.Color.from_rgb(0, 0, 0) if is_phantom else discord.Color.green(),
         )
         embed.add_field(name="Rarity", value=active_spawn["rarity_tier"], inline=True)
+        if is_phantom:
+            embed.add_field(name="Edition", value="Phantom", inline=True)
         if active_spawn.get("adp_value"):
             embed.add_field(name="ADP", value=f"{active_spawn['adp_value']:.1f}", inline=True)
         embed.add_field(name="Status", value="🆕 New player added to your collection!", inline=False)
@@ -203,7 +223,7 @@ class SpawningCog(commands.Cog):
 
         await ctx.send(embed=embed)
 
-        logger.info(f"User {ctx.author.id} caught {active_spawn['name']}")
+        logger.info(f"User {ctx.author.id} caught {display_name}")
 
     @recognize.error
     async def recognize_error(self, ctx: commands.Context, error: commands.CommandError):
@@ -215,8 +235,7 @@ class SpawningCog(commands.Cog):
         """
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(
-                f"⏱️ Slow down! Try again in {error.retry_after:.1f} seconds.",
-                ephemeral=True
+                f"⏱️ Slow down! Try again in {error.retry_after:.1f} seconds.", ephemeral=True
             )
         else:
             logger.error(f"Error in recognize command: {error}")

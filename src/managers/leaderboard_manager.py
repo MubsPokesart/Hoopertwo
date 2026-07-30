@@ -1,106 +1,93 @@
 """Manager for leaderboard business logic."""
 import math
-from datetime import date
-from typing import Dict, Any, List
-from src.database.repositories.leaderboard_repository import LeaderboardRepository
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
 from src.database.repositories.collection_repository import CollectionRepository
+from src.database.repositories.leaderboard_repository import LeaderboardRepository
 
 
 class LeaderboardManager:
-    """Manages leaderboard business logic.
+    """Manages leaderboard calculations, publication, and pagination."""
 
-    Responsibilities:
-    - Update snapshots for all users
-    - Get formatted rankings
-    - Calculate points from collections
-    """
+    PERIOD_DURATIONS: Dict[str, Optional[timedelta]] = {
+        "weekly": timedelta(days=7),
+        "monthly": timedelta(days=30),
+        "yearly": timedelta(days=365),
+        "alltime": None,
+    }
 
     def __init__(
         self,
         leaderboard_repository: LeaderboardRepository,
-        collection_repository: CollectionRepository
+        collection_repository: CollectionRepository,
     ):
-        """Initialize manager with repositories.
-
-        Args:
-            leaderboard_repository: Leaderboard repository instance
-            collection_repository: Collection repository instance
-        """
+        """Initialize manager with repositories."""
         self.leaderboard_repo = leaderboard_repository
         self.collection_repo = collection_repository
 
-    def update_snapshots_for_server(
+    def refresh_snapshots_for_server(
         self,
         server_id: int,
-        period: str,
-        snapshot_date: date
-    ) -> int:
-        """Create/update snapshots for all users in a server.
+        snapshot_at: datetime,
+    ) -> Dict[str, int]:
+        """Calculate and atomically publish every period for one server."""
+        if snapshot_at.tzinfo is None or snapshot_at.utcoffset() is None:
+            raise ValueError("Snapshot boundary must be timezone-aware")
 
-        Args:
-            server_id: Discord server ID
-            period: Time period for snapshot
-            snapshot_date: Date of snapshot
+        snapshot_at = snapshot_at.astimezone(timezone.utc)
+        period_rankings = {
+            period: self._get_period_rankings(server_id, snapshot_at, duration)
+            for period, duration in self.PERIOD_DURATIONS.items()
+        }
+        return self.leaderboard_repo.replace_server_snapshots(
+            server_id=server_id,
+            snapshot_date=snapshot_at.date(),
+            period_rankings=period_rankings,
+        )
 
-        Returns:
-            Number of snapshots created
-        """
-        # Get all users with collections in this server
-        users = self.collection_repo.get_all_server_users(server_id)
-
-        count = 0
-        for user_data in users:
-            self.leaderboard_repo.create_snapshot(
-                user_id=user_data["user_id"],
-                server_id=server_id,
-                period=period,
-                points=user_data["total_points"],
-                player_count=user_data["player_count"],
-                snapshot_date=snapshot_date
-            )
-            count += 1
-
-        return count
+    def _get_period_rankings(
+        self,
+        server_id: int,
+        snapshot_at: datetime,
+        duration: Optional[timedelta],
+    ) -> List[Dict[str, Any]]:
+        """Calculate one period at the refresh's shared UTC boundary."""
+        caught_after = snapshot_at - duration if duration is not None else None
+        return self.collection_repo.get_all_server_users(
+            server_id=server_id,
+            caught_after=caught_after,
+            caught_before=snapshot_at,
+        )
 
     def get_rankings(
         self,
         server_id: int,
         period: str,
         page: int = 0,
-        page_size: int = 10
+        page_size: int = 10,
     ) -> Dict[str, Any]:
-        """Get formatted leaderboard rankings.
+        """Get formatted and paginated leaderboard rankings."""
+        if period not in self.PERIOD_DURATIONS:
+            raise ValueError(f"Unsupported leaderboard period: {period}")
 
-        Args:
-            server_id: Discord server ID
-            period: Time period to query
-            page: Page number (0-indexed)
-            page_size: Number of results per page
-
-        Returns:
-            Dictionary with rankings, period, and pagination info
-        """
-        # Get total count first (query without limit)
         all_rankings = self.leaderboard_repo.get_rankings(
             server_id=server_id,
             period=period,
-            limit=1000  # Get all for count
+            limit=1000,
         )
         total_count = len(all_rankings)
         total_pages = math.ceil(total_count / page_size) if total_count > 0 else 1
-
-        # Get paginated results
-        offset = page * page_size
         rankings = self.leaderboard_repo.get_rankings(
             server_id=server_id,
             period=period,
             limit=page_size,
-            offset=offset
+            offset=page * page_size,
         )
 
         return {
             "rankings": rankings,
             "period": period,
             "current_page": page,
-            "total_pages": total_pages
+            "total_pages": total_pages,
         }

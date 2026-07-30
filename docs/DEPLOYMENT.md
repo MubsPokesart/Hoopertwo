@@ -82,6 +82,8 @@ nano .env
 DISCORD_TOKEN=your_actual_bot_token_here
 COMMAND_SYNC_MODE=global
 ENVIRONMENT=production
+DATABASE_PATH=/app/data/hooper_two.db
+BACKUP_DIRECTORY=/app/data/backups
 ```
 
 **Initialize Database (Optional):**
@@ -115,7 +117,7 @@ crontab -e
 0 3 * * * docker exec hooper-two-bot python scripts/backup_database.py
 
 # Optional: Weekly restart (Monday 4 AM)
-0 4 * * 1 cd ~/hoopertwo && docker-compose restart
+0 4 * * 1 cd ~/Hoopertwo && docker-compose restart
 ```
 
 ---
@@ -146,13 +148,47 @@ docker-compose logs --tail=100        # Recent logs
 
 ### Update Bot
 ```bash
-cd ~/hoopertwo
-docker exec hooper-two-bot python scripts/backup_database.py  # Backup first!
-git pull origin main
-docker-compose down
-docker-compose build
-docker-compose up -d
+cd ~/Hoopertwo
+git pull --ff-only origin main
+bash scripts/deploy_with_migration.sh
 ```
+
+The deployment script builds first, stops the bot, and then runs the database
+`preflight`, `apply`, and `verify` gates in one-off containers. It restarts the bot
+only after all three commands succeed. `apply` creates a verified SQLite backup and
+JSON manifest before changing schema or data.
+
+### Phantom/Cosmic Database Migration
+
+Run these commands only while the bot service is stopped. The migration refuses
+unknown or partially upgraded schemas and requires an explicit offline confirmation.
+
+```bash
+cd ~/Hoopertwo
+docker-compose build hooper-two
+docker-compose stop hooper-two
+docker-compose run --rm --no-deps hooper-two \
+  python scripts/migrate_database.py preflight
+docker-compose run --rm --no-deps hooper-two \
+  python scripts/migrate_database.py apply --confirm-offline
+docker-compose run --rm --no-deps hooper-two \
+  python scripts/migrate_database.py verify
+docker-compose up -d hooper-two
+```
+
+Do not restart after a failed migration or verification. The `apply` output records
+the exact backup and manifest paths needed for rollback:
+
+```bash
+docker-compose run --rm --no-deps hooper-two \
+  python scripts/migrate_database.py rollback \
+  --backup /app/data/backups/<backup>.db \
+  --manifest /app/data/backups/<backup>.manifest.json \
+  --confirm-offline
+```
+
+Rollback validates the manifest and backup hash, creates a safety backup of the
+current database, atomically restores the legacy database, and leaves the bot stopped.
 
 ### Check Health
 ```bash
@@ -163,9 +199,8 @@ docker inspect hooper-two-bot | grep -A 5 Health  # Health check status
 
 ### Restore from Backup
 ```bash
-docker-compose down
-cp data/backups/hoopertwo_backup_<timestamp>.db data/hooper_two.db
-docker-compose up -d
+docker-compose stop hooper-two
+# Use migrate_database.py rollback with the matching migration manifest.
 ```
 
 ### Reset Database (Keep Players, Wipe Collections)
@@ -195,7 +230,7 @@ git commit -m "Update player rarities"
 git push
 
 # Pull on Oracle server
-cd ~/hoopertwo
+cd ~/Hoopertwo
 git pull
 # Optionally reset database if you want to apply rarity changes
 ```

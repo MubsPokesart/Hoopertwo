@@ -4,12 +4,14 @@
 
 PRAGMA foreign_keys = ON;
 
+PRAGMA user_version = 1;
+
 -- Create players table
 CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     adp_value REAL,
-    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common')),
+    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Cosmic', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common')),
     image_url TEXT,
     career_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -22,8 +24,9 @@ CREATE TABLE IF NOT EXISTS user_collections (
     player_id INTEGER NOT NULL,
     caught_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     server_id INTEGER NOT NULL,
+    edition TEXT NOT NULL DEFAULT 'Standard' CHECK(edition IN ('Standard', 'Phantom')),
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
-    UNIQUE(user_id, player_id, server_id)
+    UNIQUE(user_id, player_id, server_id, edition)
 );
 
 -- Create server_configs table (will be empty)
@@ -46,6 +49,14 @@ CREATE TABLE IF NOT EXISTS leaderboard_snapshots (
     snapshot_date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, server_id, period, snapshot_date)
+);
+
+-- Create leaderboard_snapshot_runs table (will be empty)
+CREATE TABLE IF NOT EXISTS leaderboard_snapshot_runs (
+    server_id INTEGER NOT NULL,
+    snapshot_date DATE NOT NULL,
+    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (server_id, snapshot_date)
 );
 
 -- Create indexes
@@ -224,12 +235,12 @@ INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26313, 'Mychal Thompson', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/thompmy01.jpg', 29654, '2026-01-25 02:10:58');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26314, 'Terry Tyler', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/tylerte01.jpg', 21740, '2026-01-25 02:11:01');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26315, 'James Bailey', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/baileja01.jpg', 14858, '2026-01-25 02:11:03');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26316, 'Larry Bird', 4.15, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/birdla01.jpg', 34443, '2026-01-25 02:11:03');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26316, 'Larry Bird', 4.15, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/birdla01.jpg', 34443, '2026-01-25 02:11:03');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26317, 'Dudley Bradley', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/bradldu01.jpg', 11629, '2026-01-25 02:11:06');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26318, 'Bill Cartwright', 318.96, 'Uncommon', 'https://www.basketball-reference.com/req/202106291/images/headshots/cartwbi01.jpg', 27491, '2026-01-25 02:11:06');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26319, 'Dave Greenwood', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/greenda01.jpg', 24773, '2026-01-25 02:11:08');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26320, 'Gerald Henderson', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/hendege01.jpg', 36820, '2026-01-25 02:11:11');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26321, 'Magic Johnson', 8.56, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/johnsma02.jpg', 33245, '2026-01-25 02:11:11');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26321, 'Magic Johnson', 8.56, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/johnsma02.jpg', 33245, '2026-01-25 02:11:11');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26322, 'Vinnie Johnson', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/johnsvi01.jpg', 25603, '2026-01-25 02:11:13');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26323, 'Allen Leavell', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/leaveal01.jpg', 16248, '2026-01-25 02:11:16');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26324, 'Paul Mokeski', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/mokespa01.jpg', 11735, '2026-01-25 02:11:18');
@@ -327,7 +338,7 @@ INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26416, 'Michael Jordan', 1.41, 'GOAT', 'https://www.basketball-reference.com/req/202106291/images/headshots/jordami01.jpg', 41011, '2026-01-25 02:13:57');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26417, 'Jerome Kersey', 280.04, 'Uncommon', 'https://www.basketball-reference.com/req/202106291/images/headshots/kerseje01.jpg', 28115, '2026-01-25 02:13:57');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26418, 'Tim McCormick', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/mccorti01.jpg', 12504, '2026-01-25 02:13:59');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26419, 'Hakeem Olajuwon', 8.41, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/olajuha01.jpg', 44222, '2026-01-25 02:13:59');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26419, 'Hakeem Olajuwon', 8.41, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/olajuha01.jpg', 44222, '2026-01-25 02:13:59');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26420, 'Sam Perkins', 202.86, 'Rare', 'https://www.basketball-reference.com/req/202106291/images/headshots/perkisa01.jpg', 38949, '2026-01-25 02:13:59');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26421, 'Jim Petersen', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/peterji01.jpg', 9802, '2026-01-25 02:14:02');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26422, 'Alvin Robertson', 305.95, 'Uncommon', 'https://www.basketball-reference.com/req/202106291/images/headshots/roberal01.jpg', 26675, '2026-01-25 02:14:02');
@@ -520,7 +531,7 @@ INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26609, 'Oliver Miller', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/milleol01.jpg', 12490, '2026-01-25 02:20:53');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26610, 'Alonzo Mourning', 100.53, 'Epic', 'https://www.basketball-reference.com/req/202106291/images/headshots/mournal01.jpg', 26677, '2026-01-25 02:20:53');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26611, 'Tracy Murray', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/murratr01.jpg', 13207, '2026-01-25 02:20:56');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26612, 'Shaquille O''Neal', 5.34, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/onealsh01.jpg', 43666, '2026-01-25 02:20:56');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26612, 'Shaquille O''Neal', 5.34, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/onealsh01.jpg', 43666, '2026-01-25 02:20:56');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26613, 'Doug Overton', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/overtdo01.jpg', 9027, '2026-01-25 02:20:58');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26614, 'Anthony Peeler', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/peelean01.jpg', 21657, '2026-01-25 02:21:01');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26615, 'Sean Rooks', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/rooksse01.jpg', 15272, '2026-01-25 02:21:03');
@@ -587,7 +598,7 @@ INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26676, 'Chris Carr', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/carrch01.jpg', 6116, '2026-01-25 02:22:51');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26677, 'Andrew DeClercq', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/declean01.jpg', 10949, '2026-01-25 02:22:54');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26678, 'Michael Finley', 149.89, 'Epic', 'https://www.basketball-reference.com/req/202106291/images/headshots/finlemi01.jpg', 41495, '2026-01-25 02:22:54');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26679, 'Kevin Garnett', 4.05, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/garneke01.jpg', 51370, '2026-01-25 02:22:54');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26679, 'Kevin Garnett', 4.05, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/garneke01.jpg', 51370, '2026-01-25 02:22:54');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26680, 'Alan Henderson', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/hendeal01.jpg', 13780, '2026-01-25 02:22:56');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26681, 'Fred Hoiberg', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/hoibefr01.jpg', 9978, '2026-01-25 02:22:59');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (26682, 'Voshon Lenard', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/lenarvo01.jpg', 15807, '2026-01-25 02:23:01');
@@ -1042,7 +1053,7 @@ INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27131, 'Earl Clark', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/clarkea01.jpg', 4862, '2026-01-25 02:38:51');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27132, 'Darren Collison', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/collida01.jpg', 20833, '2026-01-25 02:38:54');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27133, 'Dante Cunningham', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/cunnida01.jpg', 18074, '2026-01-25 02:38:57');
-INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27134, 'Stephen Curry', 4.54, 'Mythic', 'https://www.basketball-reference.com/req/202106291/images/headshots/curryst01.jpg', 34975, '2026-01-25 02:38:59');
+INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27134, 'Stephen Curry', 4.54, 'Cosmic', 'https://www.basketball-reference.com/req/202106291/images/headshots/curryst01.jpg', 34975, '2026-01-25 02:38:59');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27135, 'Austin Daye', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/dayeau01.jpg', 5300, '2026-01-25 02:39:02');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27136, 'DeMar DeRozan', 318.96, 'Uncommon', 'https://www.basketball-reference.com/req/202106291/images/headshots/derozde01.jpg', 41228, '2026-01-25 02:39:04');
 INSERT INTO players (id, name, adp_value, rarity_tier, image_url, career_minutes, created_at) VALUES (27137, 'Toney Douglas', NULL, 'Common', 'https://www.basketball-reference.com/req/202106291/images/headshots/douglto01.jpg', 9475, '2026-01-25 02:39:07');

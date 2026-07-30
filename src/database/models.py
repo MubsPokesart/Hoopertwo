@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     adp_value REAL,
-    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common')),
+    rarity_tier TEXT NOT NULL CHECK(rarity_tier IN ('GOAT', 'Cosmic', 'Mythic', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common')),
     image_url TEXT,
     career_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -24,8 +24,9 @@ CREATE TABLE IF NOT EXISTS user_collections (
     player_id INTEGER NOT NULL,
     caught_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     server_id INTEGER NOT NULL,
+    edition TEXT NOT NULL DEFAULT 'Standard' CHECK(edition IN ('Standard', 'Phantom')),
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
-    UNIQUE(user_id, player_id, server_id)
+    UNIQUE(user_id, player_id, server_id, edition)
 );
 """
 
@@ -53,6 +54,15 @@ CREATE TABLE IF NOT EXISTS leaderboard_snapshots (
 );
 """
 
+CREATE_LEADERBOARD_SNAPSHOT_RUNS_TABLE = """
+CREATE TABLE IF NOT EXISTS leaderboard_snapshot_runs (
+    server_id INTEGER NOT NULL,
+    snapshot_date DATE NOT NULL,
+    published_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (server_id, snapshot_date)
+);
+"""
+
 # Indexes for query performance
 CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_user_collections_user_id ON user_collections(user_id);",
@@ -66,4 +76,5 @@ ALL_TABLES = [
     CREATE_USER_COLLECTIONS_TABLE,
     CREATE_SERVER_CONFIGS_TABLE,
     CREATE_LEADERBOARD_SNAPSHOTS_TABLE,
+    CREATE_LEADERBOARD_SNAPSHOT_RUNS_TABLE,
 ]

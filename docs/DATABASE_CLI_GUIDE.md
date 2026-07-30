@@ -20,7 +20,7 @@ This guide covers managing the HooperTwo SQLite database directly via SSH and co
 ssh ubuntu@<oracle-cloud-ip>
 
 # Access database through Docker container
-cd ~/hoopertwo
+cd ~/Hoopertwo
 docker exec -it hooper-two-bot sqlite3 data/hooper_two.db
 ```
 
@@ -31,7 +31,7 @@ docker exec -it hooper-two-bot sqlite3 data/hooper_two.db
 ssh ubuntu@<oracle-cloud-ip>
 
 # Access database directly
-cd ~/hoopertwo
+cd ~/Hoopertwo
 sqlite3 data/hooper_two.db
 ```
 
@@ -65,17 +65,16 @@ Once connected, you'll see the `sqlite>` prompt.
 
 ```bash
 sqlite> .tables
-players  user_collections  leaderboard_snapshots  server_configs
+players  user_collections  leaderboard_snapshots  leaderboard_snapshot_runs  server_configs
 
 sqlite> .schema players
 CREATE TABLE players (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    team TEXT NOT NULL,
-    image_url TEXT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    adp_value REAL,
     rarity_tier TEXT NOT NULL,
-    adp_rank REAL,
-    spawn_weight INTEGER NOT NULL,
+    image_url TEXT,
+    career_minutes INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -86,6 +85,14 @@ sqlite> .mode column
 ---
 
 ## Common Queries for HooperTwo
+
+### Phantom/Cosmic migration
+
+On first startup with an older schema, the bot creates and verifies a
+`*_pre_v1_*.db` backup in `BACKUP_DIRECTORY` before rebuilding constrained
+tables. Existing catches remain Standard editions, ADP values from 2.0 through
+9.99 become Cosmic, and historical leaderboard snapshots are retained. If
+startup fails, stop the bot and restore that backup before retrying.
 
 ### Inspect Players
 
@@ -103,10 +110,10 @@ ORDER BY total DESC;
 SELECT * FROM players WHERE name LIKE '%LeBron%';
 
 -- View GOAT tier players
-SELECT id, name, team, rarity_tier, adp_rank
+SELECT id, name, rarity_tier, adp_value
 FROM players
 WHERE rarity_tier = 'GOAT'
-ORDER BY adp_rank;
+ORDER BY adp_value;
 
 -- Check player with specific ID
 SELECT * FROM players WHERE id = 123;
@@ -116,9 +123,9 @@ SELECT * FROM players WHERE id = 123;
 
 ```sql
 -- View user collections
-SELECT user_id, player_id, server_id, recognized_at
+SELECT user_id, player_id, server_id, edition, caught_at
 FROM user_collections
-ORDER BY recognized_at DESC
+ORDER BY caught_at DESC
 LIMIT 20;
 
 -- Count collections per user
@@ -128,14 +135,14 @@ GROUP BY user_id
 ORDER BY total_players DESC;
 
 -- Check specific user's collection
-SELECT uc.user_id, p.name, p.team, p.rarity_tier
+SELECT uc.user_id, p.name, p.rarity_tier, uc.edition
 FROM user_collections uc
 JOIN players p ON uc.player_id = p.id
 WHERE uc.user_id = 'USER_ID_HERE'
 ORDER BY p.rarity_tier;
 
 -- Find who owns a specific player
-SELECT user_id, server_id, recognized_at
+SELECT user_id, server_id, edition, caught_at
 FROM user_collections
 WHERE player_id = 123;
 ```
@@ -162,6 +169,10 @@ SELECT COUNT(*) FROM server_configs;
 SELECT * FROM leaderboard_snapshots
 ORDER BY snapshot_date DESC
 LIMIT 10;
+
+-- View completed snapshot publication dates
+SELECT * FROM leaderboard_snapshot_runs
+ORDER BY snapshot_date DESC;
 
 -- Check specific server leaderboard
 SELECT * FROM leaderboard_snapshots
@@ -524,7 +535,7 @@ docker exec hooper-two-bot sqlite3 data/hooper_two.db "PRAGMA journal_mode;"
 
 ```bash
 #!/bin/bash
-# Save as ~/hoopertwo/scripts/db-query.sh
+# Save as ~/Hoopertwo/scripts/db-query.sh
 
 if [ -z "$1" ]; then
     # Interactive mode

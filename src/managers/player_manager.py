@@ -18,12 +18,13 @@ class PlayerManager:
     """
 
     # Rarity tier thresholds (based on ADP rank ranges)
-    GOAT_THRESHOLD = 2.0      # M.Jordan (1.41) - L.James (1.90): 2 players
-    MYTHIC_THRESHOLD = 33.0   
-    LEGENDARY_THRESHOLD = 75.0 
-    EPIC_THRESHOLD = 155.25 
+    GOAT_THRESHOLD = 2.0
+    COSMIC_THRESHOLD = 10.0
+    MYTHIC_THRESHOLD = 33.0
+    LEGENDARY_THRESHOLD = 75.0
+    EPIC_THRESHOLD = 155.25
     RARE_THRESHOLD = 260.1
-    UNCOMMON_THRESHOLD = 260.1  
+    UNCOMMON_THRESHOLD = 260.1
 
     def __init__(self, repository: PlayerRepository, adp_csv_path: str):
         """Initialize player manager.
@@ -50,6 +51,8 @@ class PlayerManager:
             return "Uncommon"
         elif adp_value < self.GOAT_THRESHOLD:
             return "GOAT"
+        elif adp_value < self.COSMIC_THRESHOLD:
+            return "Cosmic"
         elif adp_value < self.MYTHIC_THRESHOLD:
             return "Mythic"
         elif adp_value < self.LEGENDARY_THRESHOLD:
@@ -70,7 +73,7 @@ class PlayerManager:
 
         loaded_count = 0
 
-        with open(self.adp_csv_path, 'r', encoding='utf-8') as f:
+        with open(self.adp_csv_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
             for row in reader:
@@ -83,7 +86,7 @@ class PlayerManager:
                     name=name,
                     adp_value=adp_value,
                     rarity_tier=rarity_tier,
-                    image_url=None  # Will be populated by image scraper
+                    image_url=None,  # Will be populated by image scraper
                 )
                 loaded_count += 1
 

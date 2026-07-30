@@ -21,7 +21,7 @@ When deploying HooperTwo to a new server:
 
 ```bash
 # On Oracle Cloud server
-cd ~/hoopertwo
+cd ~/Hoopertwo
 git pull
 
 # Initialize database from SQL file
@@ -73,7 +73,7 @@ git push origin main
 
 **On Oracle Server:**
 ```bash
-cd ~/hoopertwo
+cd ~/Hoopertwo
 
 # Pull latest changes (includes updated SQL file)
 git pull

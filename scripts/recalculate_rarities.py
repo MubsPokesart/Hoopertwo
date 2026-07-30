@@ -49,6 +49,7 @@ def main():
     logger.info("CURRENT RARITY THRESHOLDS")
     logger.info("="*60)
     logger.info(f"GOAT:      ADP < {player_manager.GOAT_THRESHOLD}")
+    logger.info(f"Cosmic:    ADP < {player_manager.COSMIC_THRESHOLD}")
     logger.info(f"Mythic:    ADP < {player_manager.MYTHIC_THRESHOLD}")
     logger.info(f"Legendary: ADP < {player_manager.LEGENDARY_THRESHOLD}")
     logger.info(f"Epic:      ADP < {player_manager.EPIC_THRESHOLD}")
@@ -84,7 +85,16 @@ def main():
         logger.info("-" * 40)
 
         # Get count by rarity
-        rarity_tiers = ["GOAT", "Mythic", "Legendary", "Epic", "Rare", "Uncommon"]
+        rarity_tiers = [
+            "GOAT",
+            "Cosmic",
+            "Mythic",
+            "Legendary",
+            "Epic",
+            "Rare",
+            "Uncommon",
+            "Common",
+        ]
         for tier in rarity_tiers:
             players = repo.get_players_by_rarity(tier)
             adp_count = sum(1 for p in players if p["adp_value"] is not None)

@@ -24,24 +24,7 @@ class TestClearSeededPlayers:
         from scripts.seed_all_players import clear_seeded_players
         from src.database.connection_manager import ConnectionManager
 
-        # Create temporary database
         db_path = tmp_path / "test.db"
-        conn = sqlite3.connect(str(db_path))
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS players (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                adp_value REAL,
-                rarity_tier TEXT NOT NULL,
-                image_url TEXT,
-                career_minutes INTEGER NOT NULL
-            )
-        """)
-        conn.commit()
-        conn.close()
-
-        # Test clearing
         db = ConnectionManager(str(db_path))
         count = clear_seeded_players(db)
         db.close()
@@ -53,33 +36,20 @@ class TestClearSeededPlayers:
         from scripts.seed_all_players import clear_seeded_players
         from src.database.connection_manager import ConnectionManager
 
-        # Create temporary database with players
         db_path = tmp_path / "test.db"
-        conn = sqlite3.connect(str(db_path))
+        db = ConnectionManager(str(db_path))
+        conn = db.get_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS players (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                adp_value REAL,
-                rarity_tier TEXT NOT NULL,
-                image_url TEXT,
-                career_minutes INTEGER NOT NULL
-            )
-        """)
         cursor.execute(
             "INSERT INTO players (name, rarity_tier, career_minutes) VALUES (?, ?, ?)",
-            ("Test Player 1", "Common", 1000)
+            ("Test Player 1", "Common", 1000),
         )
         cursor.execute(
             "INSERT INTO players (name, rarity_tier, career_minutes) VALUES (?, ?, ?)",
-            ("Test Player 2", "Rare", 2000)
+            ("Test Player 2", "Rare", 2000),
         )
         conn.commit()
-        conn.close()
 
-        # Test clearing
-        db = ConnectionManager(str(db_path))
         count = clear_seeded_players(db)
 
         # Verify count

@@ -40,7 +40,16 @@ def run_spawn_simulation(num_simulations: int = 2000) -> dict[str, int]:
     tier_counts = Counter(player["rarity_tier"] for player in all_players)
 
     print(f"Database contains {len(all_players)} players:")
-    for tier in ["GOAT", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]:
+    for tier in [
+        "GOAT",
+        "Cosmic",
+        "Mythic",
+        "Legendary",
+        "Epic",
+        "Rare",
+        "Uncommon",
+        "Common",
+    ]:
         count = tier_counts.get(tier, 0)
         print(f"  {tier}: {count} players")
     print()
@@ -55,7 +64,12 @@ def run_spawn_simulation(num_simulations: int = 2000) -> dict[str, int]:
 
         try:
             player = spawn_manager.select_random_player()
-            spawn_counts[player["rarity_tier"]] += 1
+            spawn_type = (
+                "Phantom"
+                if player["edition"] == "Phantom"
+                else player["rarity_tier"]
+            )
+            spawn_counts[spawn_type] += 1
         except Exception as e:
             print(f"Error during simulation {i + 1}: {e}")
             break
@@ -75,8 +89,18 @@ def display_results(spawn_counts: dict[str, int], total_spawns: int):
     print("="*70)
 
     # Display in rarity order
-    tier_order = ["GOAT", "Mythic", "Legendary", "Epic", "Rare", "Uncommon", "Common"]
-    weights = SpawnManager.RARITY_WEIGHTS
+    tier_order = [
+        "GOAT",
+        "Cosmic",
+        "Mythic",
+        "Legendary",
+        "Epic",
+        "Rare",
+        "Uncommon",
+        "Common",
+        "Phantom",
+    ]
+    weights = SpawnManager.SPAWN_WEIGHTS
 
     print(f"\n{'Rarity':<12} {'Weight':<8} {'Spawns':<8} {'Percentage':<12} {'Bar'}")
     print("-"*70)

@@ -228,14 +228,14 @@ conn.close()
 # docker-compose.yml (already configured correctly!)
 volumes:
   - ./data:/app/data  # ✅ Persists .db, .wal, .shm files
-  - ./backups:/app/backups  # ✅ Persists backups
+  - ./data:/app/data  # Persists the database and data/backups
 ```
 
 **Verify on Oracle Cloud:**
 ```bash
 # After deployment, check files persist after restart
 docker-compose restart
-ls -lah ~/hoopertwo/data/hooper_two.db*
+ls -lah ~/Hoopertwo/data/hooper_two.db*
 # All three files should remain
 ```
 
@@ -289,7 +289,7 @@ crontab -e
 0 3 * * * docker exec hooper-two-bot python scripts/backup_database.py
 
 # Weekly integrity check at 4 AM Sunday
-0 4 * * 0 docker exec hooper-two-bot python -c "import sqlite3; conn = sqlite3.connect('data/hooper_two.db'); print(conn.execute('PRAGMA integrity_check').fetchone()[0]); conn.close()" >> ~/hoopertwo/logs/integrity_checks.log
+0 4 * * 0 docker exec hooper-two-bot python -c "import sqlite3; conn = sqlite3.connect('data/hooper_two.db'); print(conn.execute('PRAGMA integrity_check').fetchone()[0]); conn.close()" >> ~/Hoopertwo/logs/integrity_checks.log
 ```
 
 ---
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 docker exec hooper-two-bot python scripts/check_db_health.py
 
 # Add to cron for daily checks
-0 9 * * * docker exec hooper-two-bot python scripts/check_db_health.py >> ~/hoopertwo/logs/health_checks.log
+0 9 * * * docker exec hooper-two-bot python scripts/check_db_health.py >> ~/Hoopertwo/logs/health_checks.log
 ```
 
 ---
