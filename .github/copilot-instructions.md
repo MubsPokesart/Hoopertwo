@@ -20,9 +20,12 @@ collections, and builds snapshot-based leaderboards.
 - `CacheCoordinator` stores per-channel message counts and active spawns in memory.
   This state is intentionally process-local and is lost on restart. Durable player,
   collection, config, and leaderboard state belongs in SQLite.
-- Leaderboards read daily snapshots, not live collection queries. `ScheduledTasks`
-  creates all period snapshots at midnight UTC and a verified SQLite backup at 02:00
-  UTC.
+- Leaderboards read snapshots, not live collection queries. Weekly, monthly, and yearly
+  snapshots use rolling 7-, 30-, and 365-day UTC `caught_at` windows; all-time has no
+  lower cutoff. All four periods and `leaderboard_snapshot_runs` publish in one
+  transaction so empty or failed refreshes cannot expose stale/mixed results.
+  `ScheduledTasks` refreshes snapshots at startup and midnight UTC, and creates a
+  verified SQLite backup at 02:00 UTC.
 - The player-data pipeline is separate from bot runtime. `scripts/seed_all_players.py`
   combines `data/scoring.csv`, ADP/player-ID data, Basketball Reference image lookup,
   and manual/skip-list JSON files. `NBAApiClient` is deprecated for seeding.

@@ -6,17 +6,18 @@ from pathlib import Path
 from datetime import datetime
 
 # Handle Windows console encoding
-if sys.platform == 'win32':
-    sys.stdout.reconfigure(encoding='utf-8')
+if sys.platform == "win32":
+    sys.stdout.reconfigure(encoding="utf-8")
 
 
 class Colors:
     """Terminal colors for output."""
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    END = '\033[0m'
+
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    END = "\033[0m"
 
 
 def print_header(text):
@@ -45,7 +46,7 @@ def test_database_connection():
     """Test database connection and basic queries."""
     print_header("TEST 1: Database Connection")
 
-    db_path = os.getenv('DATABASE_PATH', 'data/hooper_two.db')
+    db_path = os.getenv("DATABASE_PATH", "data/hooper_two.db")
 
     try:
         conn = sqlite3.connect(db_path)
@@ -70,7 +71,7 @@ def test_database_integrity():
     """Test database integrity."""
     print_header("TEST 2: Database Integrity")
 
-    db_path = os.getenv('DATABASE_PATH', 'data/hooper_two.db')
+    db_path = os.getenv("DATABASE_PATH", "data/hooper_two.db")
 
     try:
         conn = sqlite3.connect(db_path)
@@ -98,8 +99,8 @@ def test_wal_mode_compatibility():
     """Test WAL mode enablement and compatibility."""
     print_header("TEST 3: WAL Mode Compatibility")
 
-    db_path = os.getenv('DATABASE_PATH', 'data/hooper_two.db')
-    environment = os.getenv('ENVIRONMENT', 'development')
+    db_path = os.getenv("DATABASE_PATH", "data/hooper_two.db")
+    environment = os.getenv("ENVIRONMENT", "development")
 
     try:
         conn = sqlite3.connect(db_path)
@@ -110,8 +111,8 @@ def test_wal_mode_compatibility():
         print(f"📊 Current journal mode: {current_mode}")
         print(f"🔧 Environment: {environment}")
 
-        if environment == 'production':
-            if current_mode.lower() == 'wal':
+        if environment == "production":
+            if current_mode.lower() == "wal":
                 print_success("WAL mode enabled (production)")
             else:
                 print_warning(f"Production mode but WAL not enabled (mode: {current_mode})")
@@ -125,7 +126,7 @@ def test_wal_mode_compatibility():
         test_conn.execute("CREATE TABLE IF NOT EXISTS test (id INTEGER)")
         result = test_conn.execute("PRAGMA journal_mode=WAL").fetchone()[0]
 
-        if result.lower() == 'wal':
+        if result.lower() == "wal":
             print_success("WAL mode compatible with this SQLite version")
         else:
             print_error("WAL mode not supported by this SQLite version")
@@ -134,7 +135,7 @@ def test_wal_mode_compatibility():
         test_conn.close()
         if os.path.exists(test_db):
             os.remove(test_db)
-            for ext in ['-wal', '-shm']:
+            for ext in ["-wal", "-shm"]:
                 if os.path.exists(test_db + ext):
                     os.remove(test_db + ext)
 
@@ -159,8 +160,8 @@ def test_backup_system():
         backup_module.backup_database()
 
         # Verify backup created
-        backup_dir = Path(os.getenv('BACKUP_DIRECTORY', 'data/backups'))
-        backups = sorted(backup_dir.glob('hoopertwo_backup_*.db'))
+        backup_dir = Path(os.getenv("BACKUP_DIRECTORY", "data/backups"))
+        backups = sorted(backup_dir.glob("hoopertwo_backup_*.db"))
 
         if not backups:
             print_error("No backups found after creation")
@@ -176,7 +177,7 @@ def test_backup_system():
         conn.close()
 
         if integrity == "ok":
-            print_success(f"Backup integrity: OK")
+            print_success("Backup integrity: OK")
             print_success(f"Backup player count: {player_count:,}")
             return True
         else:
@@ -193,14 +194,14 @@ def test_environment_variables():
     print_header("TEST 5: Environment Variables")
 
     required_vars = {
-        'DISCORD_TOKEN': 'Discord bot token',
-        'DATABASE_PATH': 'Database file path',
-        'BACKUP_DIRECTORY': 'Backup directory path',
+        "DISCORD_TOKEN": "Discord bot token",
+        "DATABASE_PATH": "Database file path",
+        "BACKUP_DIRECTORY": "Backup directory path",
     }
 
     optional_vars = {
-        'COMMAND_SYNC_MODE': 'Command sync mode (guild/global)',
-        'ENVIRONMENT': 'Environment (development/production)',
+        "COMMAND_SYNC_MODE": "Command sync mode (guild/global)",
+        "ENVIRONMENT": "Environment (development/production)",
     }
 
     all_present = True
@@ -210,7 +211,7 @@ def test_environment_variables():
         value = os.getenv(var)
         if value:
             # Mask sensitive values
-            display_value = value if var != 'DISCORD_TOKEN' else '*' * 20
+            display_value = value if var != "DISCORD_TOKEN" else "*" * 20
             print_success(f"{var}: {display_value}")
         else:
             print_error(f"{var}: NOT SET ({description})")
@@ -233,20 +234,20 @@ def test_docker_volume_persistence():
 
     try:
         # Check if running in Docker
-        in_docker = os.path.exists('/.dockerenv')
+        in_docker = os.path.exists("/.dockerenv")
 
         if in_docker:
             print("🐳 Running inside Docker container")
 
             # Check if data directory is mounted
-            data_path = Path('data')
+            data_path = Path("data")
             if data_path.exists() and data_path.is_dir():
                 print_success("Data directory mounted: data/")
 
                 # Check write permissions
-                test_file = data_path / '.write_test'
+                test_file = data_path / ".write_test"
                 try:
-                    test_file.write_text('test')
+                    test_file.write_text("test")
                     test_file.unlink()
                     print_success("Write permissions: OK")
                 except Exception as e:
@@ -271,7 +272,7 @@ def test_database_schema():
     """Test database schema completeness."""
     print_header("TEST 7: Database Schema")
 
-    db_path = os.getenv('DATABASE_PATH', 'data/hooper_two.db')
+    db_path = os.getenv("DATABASE_PATH", "data/hooper_two.db")
 
     try:
         conn = sqlite3.connect(db_path)
@@ -279,10 +280,11 @@ def test_database_schema():
 
         # Check for required tables
         required_tables = [
-            'players',
-            'user_collections',
-            'leaderboard_snapshots',
-            'server_configs',
+            "players",
+            "user_collections",
+            "leaderboard_snapshots",
+            "leaderboard_snapshot_runs",
+            "server_configs",
         ]
 
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
@@ -297,6 +299,23 @@ def test_database_schema():
             else:
                 print_error(f"Table '{table}': MISSING")
                 all_present = False
+
+        if "user_collections" in existing_tables:
+            collection_columns = {
+                row[1] for row in cursor.execute("PRAGMA table_info(user_collections)")
+            }
+            if "edition" in collection_columns:
+                print_success("Collection edition column: present")
+            else:
+                print_error("Collection edition column: MISSING")
+                all_present = False
+
+        schema_version = cursor.execute("PRAGMA user_version").fetchone()[0]
+        if schema_version >= 1:
+            print_success(f"Schema version: {schema_version}")
+        else:
+            print_error(f"Schema version is outdated: {schema_version}")
+            all_present = False
 
         # Check for indexes
         cursor.execute("SELECT name FROM sqlite_master WHERE type='index'")
@@ -314,7 +333,7 @@ def test_database_schema():
 def run_all_tests():
     """Run all pre-deployment tests."""
     print(f"\n{Colors.BLUE}{'='*70}")
-    print(f"HooperTwo Pre-Deployment Validation")
+    print("HooperTwo Pre-Deployment Validation")
     print(f"Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"{'='*70}{Colors.END}")
 

@@ -1,6 +1,6 @@
 """Manager for collection-related business logic."""
 import math
-from typing import Dict, Any, List
+from typing import Dict, Any
 from src.database.repositories.collection_repository import CollectionRepository
 
 
@@ -25,7 +25,8 @@ class CollectionManager:
         self,
         user_id: int,
         player_id: int,
-        server_id: int
+        server_id: int,
+        edition: str = "Standard",
     ) -> Dict[str, Any]:
         """Attempt to catch a player and add to collection.
 
@@ -38,14 +39,9 @@ class CollectionManager:
             Dictionary indicating whether the name was recognized and whether the
             player was already owned instead of newly captured
         """
-        was_added = self.repository.add_player_to_collection(
-            user_id, player_id, server_id
-        )
+        was_added = self.repository.add_player_to_collection(user_id, player_id, server_id, edition)
 
-        return {
-            "success": True,
-            "already_owned": not was_added
-        }
+        return {"success": True, "already_owned": not was_added}
 
     def get_collection(
         self,
@@ -53,7 +49,7 @@ class CollectionManager:
         server_id: int,
         page: int = 0,
         page_size: int = 10,
-        sort_by: str = "time_new"
+        sort_by: str = "time_new",
     ) -> Dict[str, Any]:
         """Get a user's collection with pagination and stats.
 
@@ -69,7 +65,9 @@ class CollectionManager:
         """
         # Get stats first to determine total pages
         stats = self.repository.get_collection_stats(user_id, server_id)
-        total_pages = math.ceil(stats["total_players"] / page_size) if stats["total_players"] > 0 else 1
+        total_pages = (
+            math.ceil(stats["total_players"] / page_size) if stats["total_players"] > 0 else 1
+        )
 
         # Get players for current page
         offset = page * page_size
@@ -81,5 +79,5 @@ class CollectionManager:
             "players": players,
             "stats": stats,
             "total_pages": total_pages,
-            "current_page": page
+            "current_page": page,
         }

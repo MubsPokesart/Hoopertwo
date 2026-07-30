@@ -21,12 +21,15 @@ Discord bot for collecting NBA players. Players spawn in chat after X messages, 
 - Cogs: Discord commands (AdminCog, SpawningCog)
 
 **Rarity Tiers:** Based on `data/adp_board.csv`
-- GOAT (< 2.0 ADP): 1 spawn weight
-- Mythic (2-31.9): 5 weight
-- Legendary (32-63.9): 15 weight
-- Epic (64-127.9): 30 weight
-- Rare (128-255.9): 50 weight
-- Common (256+): 100 weight
+- GOAT (< 2.0 ADP): 0.025% spawn rate
+- Cosmic (2-9.9): 0.1% spawn rate
+- Mythic (10-32.9): 0.375% spawn rate
+- Phantom: 3% edition roll selected uniformly from every player
+- Legendary (33-74.9): 2% spawn rate
+- Epic (75-155.24): 7.5% spawn rate
+- Rare (155.25-260.09): 9.5% spawn rate
+- Uncommon (260.1+): 12.5% spawn rate
+- Common (no ADP): 65% spawn rate
 
 ## Coding Standards
 

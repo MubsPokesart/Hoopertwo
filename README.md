@@ -10,7 +10,8 @@ Discord bot for collecting NBA players. Players spawn in chat after X messages, 
 - 🏆 **Leaderboards**: Compete on weekly/monthly/yearly/all-time leaderboards
 - ⚙️ **Admin Controls**: Configure spawn channels and thresholds
 - 💾 **Auto Backups**: Daily database backups with retention policy
-- 🎯 **Rarity Tiers**: GOAT, Mythic, Legendary, Epic, Rare, Common
+- 🎯 **Rarity Tiers**: GOAT, Cosmic, Mythic, Legendary, Epic, Rare, Uncommon, Common
+- 🌑 **Phantom Editions**: A rarer collectible edition of every player
 
 ## Quick Start
 

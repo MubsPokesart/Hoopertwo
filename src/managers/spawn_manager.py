@@ -1,6 +1,6 @@
 """Spawn manager for player spawning logic."""
 import random
-from typing import Dict, Any, List
+from typing import Dict, Any
 from src.database.repositories.player_repository import PlayerRepository
 
 
@@ -12,16 +12,18 @@ class SpawnManager:
     - Calculate spawn weights based on rarity
     """
 
-    # Spawn weights (higher = more common)
-    RARITY_WEIGHTS = {
-        "GOAT": 1,        # 0.025% spawn rate (2 players)
-        "Mythic": 19,     # 0.475% spawn rate (31 players)
-        "Legendary": 80,  # 2.0% spawn rate (42 players)
-        "Epic": 300,      # 7.5% spawn rate (81 players)
-        "Rare": 400,      # 10.0% spawn rate (104 players)
-        "Uncommon": 600,  # 15.0% spawn rate (186 players)
-        "Common": 2600,   # 65.0% spawn rate (remaining)
+    SPAWN_WEIGHTS = {
+        "GOAT": 25,
+        "Cosmic": 100,
+        "Mythic": 375,
+        "Legendary": 2000,
+        "Epic": 7500,
+        "Rare": 9500,
+        "Uncommon": 12500,
+        "Common": 65000,
+        "Phantom": 3000,
     }
+    BASE_RARITIES = tuple(bucket for bucket in SPAWN_WEIGHTS if bucket != "Phantom")
 
     def __init__(self, player_repository: PlayerRepository):
         """Initialize spawn manager.
@@ -40,7 +42,7 @@ class SpawnManager:
         Returns:
             Spawn weight (higher = more likely to spawn)
         """
-        return self.RARITY_WEIGHTS.get(rarity_tier, 100)
+        return self.SPAWN_WEIGHTS.get(rarity_tier, 0)
 
     def select_random_player(self) -> Dict[str, Any]:
         """Select a random player weighted by rarity.
@@ -61,15 +63,25 @@ class SpawnManager:
         players_by_tier = {}
         for player in all_players:
             tier = player["rarity_tier"]
-            if tier not in players_by_tier:
-                players_by_tier[tier] = []
-            players_by_tier[tier].append(player)
+            players_by_tier.setdefault(tier, []).append(player)
 
-        # Step 1: Select a rarity tier weighted by tier weights
-        tiers = list(players_by_tier.keys())
-        tier_weights = [self._calculate_spawn_weight(tier) for tier in tiers]
-        selected_tier = random.choices(tiers, weights=tier_weights, k=1)[0]
+        missing_tiers = [tier for tier in self.BASE_RARITIES if tier not in players_by_tier]
+        if missing_tiers:
+            missing = ", ".join(missing_tiers)
+            raise ValueError(f"Player bank is missing spawn tiers: {missing}")
 
-        # Step 2: Randomly select a player from that tier (equal probability)
-        selected = random.choice(players_by_tier[selected_tier])
+        # Phantom is an edition pool containing every player, not a base rarity.
+        spawn_buckets = list(self.SPAWN_WEIGHTS)
+        bucket_weights = [self._calculate_spawn_weight(bucket) for bucket in spawn_buckets]
+        selected_bucket = random.choices(
+            spawn_buckets,
+            weights=bucket_weights,
+            k=1,
+        )[0]
+
+        player_pool = (
+            all_players if selected_bucket == "Phantom" else players_by_tier[selected_bucket]
+        )
+        selected = dict(random.choice(player_pool))
+        selected["edition"] = "Phantom" if selected_bucket == "Phantom" else "Standard"
         return selected

@@ -1,6 +1,6 @@
 """Background scheduled tasks for bot maintenance."""
 import logging
-from datetime import date, datetime, timezone, timedelta, time
+from datetime import datetime, timezone, time
 from discord.ext import tasks, commands
 from src.managers.leaderboard_manager import LeaderboardManager
 from src.managers.backup_manager import BackupManager
@@ -21,7 +21,7 @@ class ScheduledTasks(commands.Cog):
         self,
         bot: commands.Bot,
         leaderboard_manager: LeaderboardManager,
-        backup_manager: BackupManager
+        backup_manager: BackupManager,
     ):
         """Initialize background tasks.
 
@@ -46,25 +46,23 @@ class ScheduledTasks(commands.Cog):
     @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone.utc))
     async def create_daily_snapshots(self):
         """Create snapshots for all servers at midnight UTC."""
-        logger.info("Starting daily snapshot creation...")
-        snapshot_date = date.today()
+        await self.refresh_leaderboard_snapshots(datetime.now(timezone.utc))
 
-        # Get all servers the bot is in
+    async def refresh_leaderboard_snapshots(self, snapshot_at: datetime) -> None:
+        """Refresh every period for all connected guilds at one UTC boundary."""
+        logger.info("Starting leaderboard snapshot refresh...")
         for guild in self.bot.guilds:
             try:
-                # Create snapshots for all periods
-                for period in ["weekly", "monthly", "yearly", "alltime"]:
-                    count = self.leaderboard_manager.update_snapshots_for_server(
-                        server_id=guild.id,
-                        period=period,
-                        snapshot_date=snapshot_date
-                    )
+                counts = self.leaderboard_manager.refresh_snapshots_for_server(
+                    server_id=guild.id,
+                    snapshot_at=snapshot_at,
+                )
+                for period, count in counts.items():
                     logger.info(f"Created {count} {period} snapshots for server {guild.id}")
-
             except Exception as e:
                 logger.error(f"Error creating snapshots for server {guild.id}: {e}")
 
-        logger.info("Daily snapshot creation complete")
+        logger.info("Leaderboard snapshot refresh complete")
 
     @tasks.loop(time=time(hour=2, minute=0, tzinfo=timezone.utc))
     async def create_daily_backup(self):
@@ -97,9 +95,10 @@ class ScheduledTasks(commands.Cog):
 
     @create_daily_snapshots.before_loop
     async def before_snapshot_task(self):
-        """Wait for bot to be ready before starting snapshot task."""
+        """Refresh once after startup, then wait for scheduled runs."""
         logger.info("Waiting for bot to be ready before starting snapshot task...")
         await self.bot.wait_until_ready()
+        await self.refresh_leaderboard_snapshots(datetime.now(timezone.utc))
 
     @create_daily_backup.before_loop
     async def before_backup_task(self):

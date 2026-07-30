@@ -17,8 +17,8 @@ Catch a spawned player and add them to your collection.
 ```
 
 **Response:**
-- ✅ Success: Player added to collection with rarity tier
-- ⚠️ Already owned: Player added but you already have them
+- ✅ Success: Standard or Phantom edition added with its base rarity tier
+- ⚠️ Already owned: You already have that edition; the spawn remains available
 - ❌ Wrong player: Name doesn't match active spawn
 - ❌ No spawn: No player to recognize
 
@@ -36,6 +36,8 @@ View a player collection with pagination.
 **Features:**
 - Shows total players and points
 - Rarity breakdown
+- Separate Phantom edition count
+- Phantom cards show their edition alongside their base rarity
 - Paginated list (9 players per page)
 - Navigation buttons: First, Prev, Next, Last
 
@@ -57,6 +59,8 @@ View server leaderboard rankings.
 **Features:**
 - Top 10 players per page
 - Shows rank, points, and player count
+- Rolling UTC windows: 7 days (weekly), 30 days (monthly), and 365 days (yearly)
+- All-time includes every capture before the latest snapshot refresh
 - Period selector dropdown
 - Pagination controls
 
@@ -182,8 +186,9 @@ List all available database backups.
 
 ### Daily Leaderboard Snapshots
 
+- Refreshes once when the bot starts
 - Runs at midnight UTC
-- Creates snapshots for all periods (weekly/monthly/yearly/alltime)
+- Creates snapshots using rolling 7/30/365-day UTC windows plus all-time
 - Automatic for all servers
 
 ### Daily Backups

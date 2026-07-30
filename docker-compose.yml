@@ -9,8 +9,6 @@ services:
     volumes:
       # Persist database and images
       - ./data:/app/data
-      # Persist backups
-      - ./backups:/app/backups
     networks:
       - hooper-network
     logging:
@@ -20,10 +18,10 @@ services:
         max-file: "3"
     healthcheck:
       test: ["CMD", "python", "-c", "import sqlite3; sqlite3.connect('data/hooper_two.db').execute('SELECT 1')"]
-      interval: 5m
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 10s
 
 networks:
   hooper-network:

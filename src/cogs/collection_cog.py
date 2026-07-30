@@ -26,7 +26,7 @@ class CollectionView(discord.ui.View):
         server_id: int,
         page_size: int = 9,
         sort_by: str = "time_new",
-        timeout: float = 180.0
+        timeout: float = 180.0,
     ):
         """Initialize pagination view.
 
@@ -65,25 +65,40 @@ class CollectionView(discord.ui.View):
         embed = discord.Embed(
             title=f"🏀 {self.user_name}'s Collection",
             description=f"**Total Players:** {stats['total_players']} | **Points:** {stats['total_points']:,}",
-            color=discord.Color.gold()
+            color=discord.Color.gold(),
         )
 
         # Add rarity breakdown
-        rarity_text = " | ".join([
-            f"{tier}: {count}" for tier, count in stats["rarity_counts"].items()
-        ])
+        rarity_text = " | ".join(
+            [f"{tier}: {count}" for tier, count in stats["rarity_counts"].items()]
+        )
         embed.add_field(name="Rarity Breakdown", value=rarity_text, inline=False)
+        if stats.get("phantom_count", 0):
+            embed.add_field(
+                name="Phantom Editions",
+                value=str(stats["phantom_count"]),
+                inline=False,
+            )
 
         # Add players on this page
         if players:
             for player in players:
+                display_name = (
+                    f"Phantom {player['name']}"
+                    if player.get("edition") == "Phantom"
+                    else player["name"]
+                )
                 embed.add_field(
-                    name=f"{player['name']} ({player['rarity_tier']})",
+                    name=f"{display_name} ({player['rarity_tier']})",
                     value=f"Caught: {player['caught_at'][:10]}",
-                    inline=True
+                    inline=True,
                 )
         else:
-            embed.add_field(name="No players yet!", value="Start recognizing players to build your collection.", inline=False)
+            embed.add_field(
+                name="No players yet!",
+                value="Start recognizing players to build your collection.",
+                inline=False,
+            )
 
         embed.set_footer(text=f"Page {self.current_page + 1}/{self.total_pages}")
 
@@ -96,7 +111,7 @@ class CollectionView(discord.ui.View):
             server_id=self.server_id,
             page=self.current_page,
             page_size=self.page_size,
-            sort_by=self.sort_by
+            sort_by=self.sort_by,
         )
         self.total_pages = self.collection_data["total_pages"]
 
@@ -128,27 +143,27 @@ class CollectionView(discord.ui.View):
                 label="Time Caught (Newest)",
                 value="time_new",
                 description="Sort by most recently caught",
-                emoji="🕐"
+                emoji="🕐",
             ),
             discord.SelectOption(
                 label="Time Caught (Oldest)",
                 value="time_old",
                 description="Sort by first caught",
-                emoji="🕰️"
+                emoji="🕰️",
             ),
             discord.SelectOption(
                 label="Rarity (Best First)",
                 value="rarity_best",
                 description="Sort by rarest players first",
-                emoji="💎"
+                emoji="💎",
             ),
             discord.SelectOption(
                 label="Rarity (Common First)",
                 value="rarity_common",
                 description="Sort by most common players first",
-                emoji="📊"
-            )
-        ]
+                emoji="📊",
+            ),
+        ],
     )
     async def sort_select(self, interaction: discord.Interaction, select: discord.ui.Select):
         """Handle sort selection changes."""
@@ -174,7 +189,9 @@ class CollectionView(discord.ui.View):
         self._update_buttons()
         await interaction.response.edit_message(embed=self._create_embed(), view=self)
 
-    @discord.ui.button(label="Page 1/1", style=discord.ButtonStyle.green, custom_id="page", disabled=True)
+    @discord.ui.button(
+        label="Page 1/1", style=discord.ButtonStyle.green, custom_id="page", disabled=True
+    )
     async def page_indicator(self, interaction: discord.Interaction, button: discord.ui.Button):
         """Page indicator (disabled button)."""
         pass
@@ -220,9 +237,7 @@ class CollectionCog(commands.Cog):
     @app_commands.command(name="collection", description="View your player collection")
     @app_commands.describe(user="User whose collection to view (defaults to yourself)")
     async def collection(
-        self,
-        interaction: discord.Interaction,
-        user: Optional[discord.Member] = None
+        self, interaction: discord.Interaction, user: Optional[discord.Member] = None
     ):
         """Display a user's collection with pagination.
 
@@ -241,7 +256,7 @@ class CollectionCog(commands.Cog):
             server_id=interaction.guild_id,
             page=0,
             page_size=page_size,
-            sort_by=sort_by
+            sort_by=sort_by,
         )
 
         # Create view
@@ -253,7 +268,7 @@ class CollectionCog(commands.Cog):
             user_id=target_user.id,
             server_id=interaction.guild_id,
             page_size=page_size,
-            sort_by=sort_by
+            sort_by=sort_by,
         )
 
         # Send initial message

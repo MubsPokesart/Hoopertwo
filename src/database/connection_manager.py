@@ -2,6 +2,7 @@
 import sqlite3
 from pathlib import Path
 from typing import Optional
+from src.database.migrations import migrate_schema
 from src.database.models import ALL_TABLES, CREATE_INDEXES
 
 
@@ -15,13 +16,14 @@ class ConnectionManager:
     - Provide thread-safe connection access
     """
 
-    def __init__(self, database_path: str):
+    def __init__(self, database_path: str, backup_directory: Optional[str] = None):
         """Initialize connection manager and create schema.
 
         Args:
             database_path: Path to SQLite database file
         """
         self.database_path = database_path
+        self.backup_directory = backup_directory or str(Path(database_path).parent / "backups")
         self._connection: Optional[sqlite3.Connection] = None
 
         # Ensure directory exists
@@ -35,11 +37,17 @@ class ConnectionManager:
         self._connection = sqlite3.connect(
             self.database_path,
             check_same_thread=False,  # Allow multi-threaded access
-            isolation_level=None  # Autocommit mode
+            isolation_level=None,  # Autocommit mode
         )
 
         # Enable foreign key constraints (disabled by default in SQLite)
         self._connection.execute("PRAGMA foreign_keys = ON")
+
+        migrate_schema(
+            self._connection,
+            self.database_path,
+            self.backup_directory,
+        )
 
         # Create tables
         cursor = self._connection.cursor()
@@ -73,7 +81,10 @@ class ConnectionManager:
 _connection_manager: Optional[ConnectionManager] = None
 
 
-def get_connection_manager(database_path: Optional[str] = None) -> ConnectionManager:
+def get_connection_manager(
+    database_path: Optional[str] = None,
+    backup_directory: Optional[str] = None,
+) -> ConnectionManager:
     """Get or create the singleton ConnectionManager instance.
 
     Args:
@@ -87,6 +98,6 @@ def get_connection_manager(database_path: Optional[str] = None) -> ConnectionMan
     if _connection_manager is None:
         if database_path is None:
             raise ValueError("database_path required for first initialization")
-        _connection_manager = ConnectionManager(database_path)
+        _connection_manager = ConnectionManager(database_path, backup_directory)
 
     return _connection_manager

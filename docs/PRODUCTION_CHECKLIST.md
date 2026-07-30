@@ -201,13 +201,13 @@ crontab -e
 0 3 * * * docker exec hooper-two-bot python scripts/backup_database.py
 
 # Daily health check at 9 AM
-0 9 * * * docker exec hooper-two-bot python scripts/check_db_health.py >> ~/hoopertwo/logs/health.log
+0 9 * * * docker exec hooper-two-bot python scripts/check_db_health.py >> ~/Hoopertwo/logs/health.log
 
 # Weekly integrity check at 4 AM Sunday
-0 4 * * 0 docker exec hooper-two-bot python -c "import sqlite3; conn = sqlite3.connect('data/hooper_two.db'); print(conn.execute('PRAGMA integrity_check').fetchone()[0])" >> ~/hoopertwo/logs/integrity.log
+0 4 * * 0 docker exec hooper-two-bot python -c "import sqlite3; conn = sqlite3.connect('data/hooper_two.db'); print(conn.execute('PRAGMA integrity_check').fetchone()[0])" >> ~/Hoopertwo/logs/integrity.log
 
 # Weekly restart (Monday 4 AM)
-0 4 * * 1 cd ~/hoopertwo && docker-compose restart
+0 4 * * 1 cd ~/Hoopertwo && docker-compose restart
 
 # Monthly WAL checkpoint (1st of month, 2 AM)
 0 2 1 * * docker exec hooper-two-bot python -c "import sqlite3; conn = sqlite3.connect('data/hooper_two.db'); conn.execute('PRAGMA wal_checkpoint(TRUNCATE)'); conn.close()"

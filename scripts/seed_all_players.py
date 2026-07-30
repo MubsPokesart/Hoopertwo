@@ -424,7 +424,13 @@ async def seed_all_players(clear_database: bool = False):
                 )
 
                 stats['added'] += 1
-                logger.info(f"Added {player_name} ({player_manager.calculate_rarity_tier(player_object["adp"])}) ({career_minutes:,} minutes)")
+                rarity_tier = player_manager.calculate_rarity_tier(
+                    player_object["adp"]
+                )
+                logger.info(
+                    f"Added {player_name} ({rarity_tier}) "
+                    f"({career_minutes:,} minutes)"
+                )
 
             except Exception as e:
                 logger.error(f"Error adding {player_name}: {e}")

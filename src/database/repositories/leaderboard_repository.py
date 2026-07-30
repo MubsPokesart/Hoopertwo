@@ -4,6 +4,35 @@ from datetime import date
 from typing import List, Dict, Any, Optional
 
 
+def _upsert_snapshot(
+    connection: sqlite3.Connection,
+    user_id: int,
+    server_id: int,
+    period: str,
+    points: int,
+    player_count: int,
+    snapshot_date: date,
+) -> None:
+    """Write one snapshot row while preserving database errors."""
+    try:
+        connection.execute(
+            """
+            INSERT INTO leaderboard_snapshots
+                (user_id, server_id, period, points, player_count, snapshot_date)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(user_id, server_id, period, snapshot_date)
+            DO UPDATE SET
+                points = excluded.points,
+                player_count = excluded.player_count
+            """,
+            (user_id, server_id, period, points, player_count, snapshot_date),
+        )
+        connection.commit()
+    except sqlite3.Error:
+        connection.rollback()
+        raise
+
+
 class LeaderboardRepository:
     """Handles database operations for leaderboards.
 
@@ -13,6 +42,8 @@ class LeaderboardRepository:
     - Get user rank and stats
     - All operations use parameterized queries for security
     """
+
+    PERIODS = ("weekly", "monthly", "yearly", "alltime")
 
     def __init__(self, connection: sqlite3.Connection):
         """Initialize repository with database connection.
@@ -29,46 +60,78 @@ class LeaderboardRepository:
         period: str,
         points: int,
         player_count: int,
-        snapshot_date: date
+        snapshot_date: date,
     ) -> bool:
-        """Create a leaderboard snapshot for a user.
+        """Create or update one snapshot row."""
+        _upsert_snapshot(
+            self.connection,
+            user_id,
+            server_id,
+            period,
+            points,
+            player_count,
+            snapshot_date,
+        )
+        return True
 
-        Args:
-            user_id: Discord user ID
-            server_id: Discord server ID
-            period: Time period (weekly, monthly, yearly, alltime)
-            points: Total points
-            player_count: Total number of players
-            snapshot_date: Date of snapshot
+    def replace_server_snapshots(
+        self,
+        server_id: int,
+        snapshot_date: date,
+        period_rankings: Dict[str, List[Dict[str, Any]]],
+    ) -> Dict[str, int]:
+        """Atomically replace and publish every period for one server and date."""
+        if set(period_rankings) != set(self.PERIODS):
+            raise ValueError("Snapshot refresh must include every leaderboard period")
 
-        Returns:
-            True if created/updated successfully
-        """
+        rows = [
+            (
+                ranking["user_id"],
+                server_id,
+                period,
+                ranking["total_points"],
+                ranking["player_count"],
+                snapshot_date,
+            )
+            for period in self.PERIODS
+            for ranking in period_rankings[period]
+        ]
+        cursor = self.connection.cursor()
+        cursor.execute("BEGIN IMMEDIATE")
         try:
-            cursor = self.connection.cursor()
             cursor.execute(
+                """
+                DELETE FROM leaderboard_snapshots
+                WHERE server_id = ? AND snapshot_date = ?
+                """,
+                (server_id, snapshot_date),
+            )
+            cursor.executemany(
                 """
                 INSERT INTO leaderboard_snapshots
                     (user_id, server_id, period, points, player_count, snapshot_date)
                 VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(user_id, server_id, period, snapshot_date)
-                DO UPDATE SET
-                    points = excluded.points,
-                    player_count = excluded.player_count
                 """,
-                (user_id, server_id, period, points, player_count, snapshot_date)
+                rows,
+            )
+            cursor.execute(
+                """
+                INSERT INTO leaderboard_snapshot_runs (server_id, snapshot_date)
+                VALUES (?, ?)
+                ON CONFLICT(server_id, snapshot_date)
+                DO UPDATE SET published_at = CURRENT_TIMESTAMP
+                """,
+                (server_id, snapshot_date),
             )
             self.connection.commit()
-            return True
         except sqlite3.Error:
-            return False
+            self.connection.rollback()
+            raise
+
+        return {period: len(period_rankings[period]) for period in self.PERIODS}
 
     def get_rankings(
-        self,
-        server_id: int,
-        period: str,
-        limit: int = 100,
-        offset: int = 0
+        self, server_id: int, period: str, limit: int = 100, offset: int = 0
     ) -> List[Dict[str, Any]]:
         """Get leaderboard rankings for a period.
 
@@ -83,15 +146,7 @@ class LeaderboardRepository:
         """
         cursor = self.connection.cursor()
 
-        # Get latest snapshot date for this period
-        cursor.execute(
-            """
-            SELECT MAX(snapshot_date) FROM leaderboard_snapshots
-            WHERE server_id = ? AND period = ?
-            """,
-            (server_id, period)
-        )
-        latest_date = cursor.fetchone()[0]
+        latest_date = self._get_latest_published_date(server_id)
 
         if not latest_date:
             return []
@@ -109,18 +164,13 @@ class LeaderboardRepository:
             ORDER BY points DESC
             LIMIT ? OFFSET ?
             """,
-            (server_id, period, latest_date, limit, offset)
+            (server_id, period, latest_date, limit, offset),
         )
 
         columns = ["user_id", "points", "player_count", "rank"]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    def get_user_rank(
-        self,
-        user_id: int,
-        server_id: int,
-        period: str
-    ) -> Optional[Dict[str, Any]]:
+    def get_user_rank(self, user_id: int, server_id: int, period: str) -> Optional[Dict[str, Any]]:
         """Get a specific user's rank and stats.
 
         Args:
@@ -133,15 +183,7 @@ class LeaderboardRepository:
         """
         cursor = self.connection.cursor()
 
-        # Get latest snapshot date
-        cursor.execute(
-            """
-            SELECT MAX(snapshot_date) FROM leaderboard_snapshots
-            WHERE server_id = ? AND period = ?
-            """,
-            (server_id, period)
-        )
-        latest_date = cursor.fetchone()[0]
+        latest_date = self._get_latest_published_date(server_id)
 
         if not latest_date:
             return None
@@ -162,15 +204,23 @@ class LeaderboardRepository:
             FROM ranked_users
             WHERE user_id = ?
             """,
-            (server_id, period, latest_date, user_id)
+            (server_id, period, latest_date, user_id),
         )
 
         row = cursor.fetchone()
         if not row:
             return None
 
-        return {
-            "rank": row[0],
-            "points": row[1],
-            "player_count": row[2]
-        }
+        return {"rank": row[0], "points": row[1], "player_count": row[2]}
+
+    def _get_latest_published_date(self, server_id: int) -> Optional[str]:
+        """Get the latest date whose all-time cohort completed publication."""
+        cursor = self.connection.execute(
+            """
+            SELECT MAX(snapshot_date)
+            FROM leaderboard_snapshot_runs
+            WHERE server_id = ?
+            """,
+            (server_id,),
+        )
+        return cursor.fetchone()[0]

@@ -46,7 +46,10 @@ class HooperTwoBot(commands.Bot):
         )
 
         # Initialize database connection
-        self.db = get_connection_manager(self.settings.database_path)
+        self.db = get_connection_manager(
+            self.settings.database_path,
+            self.settings.backup_directory,
+        )
         logger.info(f"Database initialized at {self.settings.database_path}")
 
     async def setup_hook(self):

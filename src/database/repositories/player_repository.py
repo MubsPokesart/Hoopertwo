@@ -30,14 +30,15 @@ class PlayerRepository:
         adp_value: Optional[float],
         rarity_tier: str,
         image_url: Optional[str],
-        career_minutes: Optional[int] = None
+        career_minutes: Optional[int] = None,
     ) -> int:
         """Create a new player record.
 
         Args:
             name: Player's full name
             adp_value: Average draft position value (if on ADP board)
-            rarity_tier: One of: GOAT, Mythic, Legendary, Epic, Rare, Common
+            rarity_tier: One of: GOAT, Cosmic, Mythic, Legendary, Epic, Rare,
+                Uncommon, Common
             image_url: Basketball Reference image URL
             career_minutes: Total career minutes played
 
@@ -50,7 +51,7 @@ class PlayerRepository:
             INSERT INTO players (name, adp_value, rarity_tier, image_url, career_minutes)
             VALUES (?, ?, ?, ?, ?)
             """,
-            (name, adp_value, rarity_tier, image_url, career_minutes)
+            (name, adp_value, rarity_tier, image_url, career_minutes),
         )
         self.conn.commit()
         return cursor.lastrowid
@@ -97,10 +98,7 @@ class PlayerRepository:
             List of player dicts
         """
         cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT * FROM players WHERE rarity_tier = ? ORDER BY name",
-            (rarity_tier,)
-        )
+        cursor.execute("SELECT * FROM players WHERE rarity_tier = ? ORDER BY name", (rarity_tier,))
         return [self._row_to_dict(cursor, row) for row in cursor.fetchall()]
 
     def update_player_image(self, name: str, image_url: str) -> bool:
@@ -118,10 +116,7 @@ class PlayerRepository:
             return False
 
         cursor = self.conn.cursor()
-        cursor.execute(
-            "UPDATE players SET image_url = ? WHERE id = ?",
-            (image_url, player["id"])
-        )
+        cursor.execute("UPDATE players SET image_url = ? WHERE id = ?", (image_url, player["id"]))
         self.conn.commit()
         return True
 
@@ -136,10 +131,7 @@ class PlayerRepository:
             True if update successful
         """
         cursor = self.conn.cursor()
-        cursor.execute(
-            "UPDATE players SET rarity_tier = ? WHERE id = ?",
-            (rarity_tier, player_id)
-        )
+        cursor.execute("UPDATE players SET rarity_tier = ? WHERE id = ?", (rarity_tier, player_id))
         self.conn.commit()
         return cursor.rowcount > 0
 
@@ -150,9 +142,7 @@ class PlayerRepository:
             List of player dicts with non-null ADP values
         """
         cursor = self.conn.cursor()
-        cursor.execute(
-            "SELECT * FROM players WHERE adp_value IS NOT NULL ORDER BY adp_value"
-        )
+        cursor.execute("SELECT * FROM players WHERE adp_value IS NOT NULL ORDER BY adp_value")
         return [self._row_to_dict(cursor, row) for row in cursor.fetchall()]
 
     def _row_to_dict(self, cursor, row) -> Dict[str, Any]:
@@ -165,7 +155,4 @@ class PlayerRepository:
         Returns:
             Dictionary with column names as keys
         """
-        return {
-            col[0]: row[idx]
-            for idx, col in enumerate(cursor.description)
-        }
+        return {col[0]: row[idx] for idx, col in enumerate(cursor.description)}
